@@ -10,3 +10,7 @@ is to manage changes and allow easy deployment between my notebook and table.
 Paul McIntosh
 paul dot mcintosh at internetscooter dot com
 www.vespalabs.org
+
+For details see the wiki page:
+http://www.vespalabs.org/Projects/Scooter_Computer_II
+

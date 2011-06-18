@@ -2,7 +2,6 @@
 #include <QObject>
 #include <QMessageBox>
 
-
 LabJack::LabJack():
     lngHandle(0),
     status("Initialising..."),
@@ -19,6 +18,7 @@ LabJack::LabJack():
 }
 
 //Configure the LabJack pins and timers - generic to start with later we'll have different ones
+//This is still a work in progress...
 void LabJack::Configure(void)
 {
     //Start by using the pin_configuration_reset IOType so that all
