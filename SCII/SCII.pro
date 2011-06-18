@@ -15,6 +15,8 @@ SOURCES += main.cpp\
     labjack.cpp
 
 HEADERS  += sciimainwindow.h \
-    labjack.h
+    labjack.h \
+    LJUD_DynamicLinking.h \
+    LabJackUD.h
 
 FORMS    += sciimainwindow.ui

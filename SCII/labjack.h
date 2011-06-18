@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <windows.h>
 #include <QString>
-#include "c:\program files\labjack\drivers\LabJackUD.h"
-#include "..\DevC_LJUD\LJUD_DynamicLinking.h"
+#include "LabJackUD.h" // this is a copy and will become outdated!!!
+#include "LJUD_DynamicLinking.h"
 
 class LabJack
 {
