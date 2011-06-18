@@ -20,3 +20,6 @@ HEADERS  += sciimainwindow.h \
     LabJackUD.h
 
 FORMS    += sciimainwindow.ui
+
+OTHER_FILES += \
+    README_SCII.txt
