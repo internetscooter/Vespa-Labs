@@ -5,6 +5,7 @@
 LabJack::LabJack():
     lngHandle(0),
     status("Initialising..."),
+    wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
     lngIOType(0), //may not be needed
     lngChannel(0) //may not be needed
 {
@@ -116,9 +117,10 @@ void LabJack::Update(void)
 //    double dblDutyCycle = 100 * dblHighCycles / (dblHighCycles + dblLowCycles);
 //    double dblHighTime = 0.000001 * dblHighCycles;
 //    double dblLowTime = 0.000001 * dblLowCycles;
-    status.setNum(dblValue);
-    speedms = dblValue / 1000; //seconds
-
+    // status.setNum(dblValue);
+    status.setNum(dblValue / 1000 / 1000);
+    wheelSpeed.set_period(dblValue / 1000 / 1000);
+    //speedms = dblValue / 1000 / 1000; //seconds
 }
 
 // from previous code (useful examples)

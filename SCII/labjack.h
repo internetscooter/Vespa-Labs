@@ -2,6 +2,7 @@
 #define LABJACK_H
 #include <stdio.h>
 #include <windows.h>
+#include <speed.h>
 #include <QString>
 #include "LabJackUD.h" // this is a copy and will become outdated!!!
 #include "LJUD_DynamicLinking.h"
@@ -14,7 +15,8 @@ public:
     void Configure(void);
     void Update(void);
     void TestExample (void);
-    double speedms;
+    Speed wheelSpeed; // not the best place to have this - later split labjack and scooter coupling
+                      // for now it is useful to define this class and use it directly
     QString status;
 private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);

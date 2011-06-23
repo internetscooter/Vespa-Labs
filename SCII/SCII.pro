@@ -12,12 +12,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         sciimainwindow.cpp \
-    labjack.cpp
+    labjack.cpp \
+    speed.cpp
 
 HEADERS  += sciimainwindow.h \
     labjack.h \
     LJUD_DynamicLinking.h \
-    LabJackUD.h
+    LabJackUD.h \
+    speed.h
 
 FORMS    += sciimainwindow.ui
 

@@ -23,7 +23,7 @@ void SCIIMainWindow::slotUpdate(void)
     //Sleep(500);
     vespaLabJack->Update();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
-    ui->lcdNumber->display(QString("%1").arg(vespaLabJack->speedms,0,'f',2));
+    ui->lcdNumber->display(QString("%1").arg(vespaLabJack->wheelSpeed.rpm(),0,'f',2));
 }
 
 SCIIMainWindow::~SCIIMainWindow()
