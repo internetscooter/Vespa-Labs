@@ -6,120 +6,72 @@ LabJack::LabJack():
     lngHandle(0),
     status("Initialising..."),
     wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
-    lngIOType(0), //may not be needed
-    lngChannel(0) //may not be needed
+    lngIOType(0), // may not be needed
+    lngChannel(0) // may not be needed
 {
-    //Load the DLL
+    // Load the DLL
     LoadLabJackUD();
 
-    //Open the first found LabJack U3 - we only expecting one (for now)
+    // Open the first found U3 LabJack - we only expecting one (for now)
     lngErrorcode = m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle);
     ErrorHandler(lngErrorcode, __LINE__, 0);
+
     status = "Ready";
 }
 
-//Configure the LabJack pins and timers - generic to start with later we'll have different ones
-//This is still a work in progress...
+// Configure the LabJack pins and timers - generic to start with later we'll have different ones
+// This is still a work in progress...
+// I'd actually like all these set via XML or Qt preferences so they can be updated live...
 void LabJack::Configure(void)
 {
-    //Start by using the pin_configuration_reset IOType so that all
-    //pin assignments are in the factory default condition.
-    //The ePut function is used, which combines the add/go/get.
+    // Start by using the pin_configuration_reset IOType so that all
+    // pin assignments are in the factory default condition.
+    // The ePut function is used, which combines the add/go/get.
     lngErrorcode = m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-    //The following commands will use the add-go-get method to group (get is later in the update)
-    //multiple requests into a single low-level function.
+    // The following commands will use the add-go-get method to group
+    // multiple requests into a single low-level function (get is used later in LabJack::Update(void))
 
-    //Add - Set the timer/counter pin offset to 7, which will put the first
-    //timer/counter on FIO7.
-    lngErrorcode = m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 7, 0, 0);
+    // Add - Use the 48 MHz timer clock base with divider.  Since we are using clock with divisor
+    // support, Counter0 is not available.
+    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-    //Add - Enable both timers. .
-    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 2, 0, 0);
-    ErrorHandler(lngErrorcode, __LINE__, 0);
-
-    //Add - Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
-    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0);
-    ErrorHandler(lngErrorcode, __LINE__, 0);
-
-//    //Add - Set the debounce settings to a single 87ms period, positive edges counted:
-//    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_VALUE, 0, 257, 0, 0);
-//    ErrorHandler(lngErrorcode, __LINE__, 0);
-
-    //Add - Use the 48 MHz timer clock base with divider.  Since we are using clock with divisor
-    //support, Counter0 is not available.
-    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tcSYS, 0, 0);
-    ErrorHandler(lngErrorcode, __LINE__, 0);
-
-    //Add - Set the divisor to 48 so the actual timer clock is 1 MHz.
+    // Add - Set the divisor to 48 so the actual timer clock is 1 MHz.
     lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-    //Go - Execute the requests.
-    lngErrorcode = m_pGoOne (lngHandle);
+    // Add - Set the timer/counter pin offset to 4, which will put the first
+    // timer/counter on FIO4.
+    lngErrorcode = m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-    /*
-      http://forums.labjack.com/index.php?showtopic=1460
-Here is some pseudocode adapted from the TimerCounter.c example. First code to configure the timer:
+    // Add - Enable both timers. .
+    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 2, 0, 0);
+    ErrorHandler(lngErrorcode, __LINE__, 0);
 
-//Use the 48 MHz timer clock base.
-AddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tcSYS, 0, 0);
+    // Add - Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
+    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0);
+    ErrorHandler(lngErrorcode, __LINE__, 0);
 
-//Set the divisor to 48 so the actual timer clock is 1 MHz.
-AddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0);
-
-//Enable 1 timer. It will use FIO0.
-AddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 1, 0, 0);
-
-//Configure Timer0 for 32-bit period measurement.
-AddRequest(lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0);
-
-//Execute the requests on a single LabJack.
-GoOne(lngHandle);
-
-      */
+    // Go!!! - Execute the requests.
+    lngErrorcode = m_pGoOne (lngHandle);
+    ErrorHandler(lngErrorcode, __LINE__, 0);
 
 }
 
 // get latest info
 void LabJack::Update(void)
 {
-    double dblValue;
+    double period_us;
 
-    /*
-
-        The following pseudocode demonstrates reading input timers/counters and updating the values of output timers. The e-functions are used in the following pseudocode, but some applications might combine the following calls into a single add/go/get block so that a single low-level call is used.
-
-        //Change Timer0 PWM duty cycle to 25%.
-        ePut (lngHandle, LJ_ioPUT_TIMER_VALUE, 0, 49152, 0);
-
-     //Read duty-cycle from Timer1.
-     eGet (lngHandle, LJ_ioGET_TIMER, 1, &dblValue, 0);*/
-
-    lngErrorcode = m_peGet (lngHandle, LJ_ioGET_TIMER, 0, &dblValue, 0);
+    // get timer value
+    lngErrorcode = m_peGet (lngHandle, LJ_ioGET_TIMER, 0, &period_us, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-//    //Request the value of Counter1.
-//    lngErrorcode = m_pAddRequest (lngHandle, LJ_ioGET_COUNTER, 1, 0, 0, 0);
-//    ErrorHandler(lngErrorcode, __LINE__, 0);
-
-    //The duty cycle read returns a 32-bit value where the
-    //least significant word (LSW) represents the high time
-    //and the most significant word (MSW) represents the low
-    //time.  The times returned are the number of cycles of
-    //the timer clock.  In this case the timer clock was set
-    //to 1 MHz, so each cycle is 1 microsecond.
-//    double dblHighCycles = (double)(((unsigned long)dblValue) % (65536));
-//    double dblLowCycles = (double)(((unsigned long)dblValue) / (65536));
-//    double dblDutyCycle = 100 * dblHighCycles / (dblHighCycles + dblLowCycles);
-//    double dblHighTime = 0.000001 * dblHighCycles;
-//    double dblLowTime = 0.000001 * dblLowCycles;
-    // status.setNum(dblValue);
-    status.setNum(dblValue / 1000 / 1000);
-    wheelSpeed.set_period(dblValue / 1000 / 1000);
+    status.setNum(period_us / 1000 / 1000);
+    wheelSpeed.set_period(period_us / 1000 / 1000);
     //speedms = dblValue / 1000 / 1000; //seconds
 }
 
