@@ -4,6 +4,15 @@ Welcome to the Vespa Labs repository.
 This will contain a number of source code projects
 in High Performance Scooting and Computing...
 
+Licensing
+
+LGPL http://www.gnu.org/copyleft/lesser.html
+
+EULA
+
+This is experimental software and has absolutely NO WARRANTY. 
+
+-= Contents =-
 SCII
 
 Scooter Computer II - a tablet pc hooked up to a Vespa via a LabJack.
