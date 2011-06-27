@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>800</height>
+    <width>1000</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>701</width>
-      <height>461</height>
+      <width>551</width>
+      <height>261</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -30,7 +30,7 @@
         <bool>false</bool>
        </property>
        <property name="numDigits">
-        <number>6</number>
+        <number>8</number>
        </property>
        <property name="segmentStyle">
         <enum>QLCDNumber::Flat</enum>
@@ -45,7 +45,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1280</width>
+     <width>1000</width>
      <height>21</height>
     </rect>
    </property>
