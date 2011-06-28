@@ -17,10 +17,10 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>551</width>
-      <height>261</height>
+      <x>10</x>
+      <y>280</y>
+      <width>361</width>
+      <height>141</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -38,6 +38,28 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QtSvgDialGauge" name="svgSpeedometer" native="true">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>100</y>
+      <width>651</width>
+      <height>581</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>An SVG button widget.</string>
+    </property>
+    <property name="whatsThis">
+     <string>An SVG button widget.</string>
+    </property>
+    <property name="skin" stdset="0">
+     <string>Tachometer</string>
+    </property>
+    <property name="maximum" stdset="0">
+     <number>10</number>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -61,6 +83,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QtSvgDialGauge</class>
+   <extends>QWidget</extends>
+   <header location="global">QtSvgDialGauge</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
