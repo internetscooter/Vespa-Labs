@@ -1,3 +1,5 @@
+#warning "Local Copy of LabJackUD.h being used - change to your system LabJackUD.h header or there will be errors!!!"
+
 #ifndef LJHEADER_H
 #define LJHEADER_H
 
