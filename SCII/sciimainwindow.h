@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QFile>
 #include "labjack.h"
 
 namespace Ui {
@@ -20,6 +21,7 @@ public:
 private:
     Ui::SCIIMainWindow *ui;
     LabJack *vespaLabJack;
+    QFile *logfile;
 
 public slots:
 
