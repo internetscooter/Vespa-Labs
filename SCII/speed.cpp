@@ -59,10 +59,10 @@ void Speed::set_ms(double ms) // set metres per second
     speed_ms = ms;
     // calculate acceleration
     double difference = speed_ms - lastSpeed_ms;
-    double acceleration_mss = difference / (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
+    acceleration_mss = difference / (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
     newtons = mass_kg * acceleration_mss;
-    double average_ms = (speed_ms + lastSpeed_ms)/2;
-    power_w = lastSpeed_ms * average_ms;
+    double averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
+    power_w = newtons * averageSpeed_ms;
 }
 
 void Speed::set_period_s(double period_seconds) // set time for rotation
