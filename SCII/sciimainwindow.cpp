@@ -24,7 +24,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     //update screen every 0.5 seconds (as a test)
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(500);
+    timer->start(250);
     //ui->svgSpeedometer->setValue(10000);
 }
 
@@ -38,11 +38,13 @@ void SCIIMainWindow::slotUpdate(void)
     // no error checking! Comment out when not being used
     QDateTime now = QDateTime::currentDateTime();
     QTextStream out(logfile);
-    out << now.toString() << "," << vespaLabJack->wheelSpeed.ms() << "\n";
+    out << now.toString()
+            << "," << vespaLabJack->wheelSpeed.ms()
+            << "," << vespaLabJack->wheelSpeed.kmph() << "\n";
 
     //statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
     statusBar()->showMessage("Vespa LabJack: " + QString("%1").arg(vespaLabJack->wheelSpeed.kmph()*1000));
-    ui->lcdNumber->display(QString("%1").arg(vespaLabJack->wheelSpeed.rpm(),0,'f',2));
+    ui->lcdNumber->display(QString("%1").arg(vespaLabJack->wheelSpeed.kmph(),0,'f',2));
     ui->svgSpeedometer->setValue(vespaLabJack->wheelSpeed.kmph()*1000);
 }
 

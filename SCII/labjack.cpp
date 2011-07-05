@@ -47,11 +47,13 @@ void LabJack::Configure(void)
     lngErrorcode = m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-    // Add - Enable both timers. .
-    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 2, 0, 0);
+    // Add - Enable both timers.
+    // TODO - 1 or 2? this should probably only one until we need the other
+    lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 1, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
     // Add - Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
+    // lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmFALLINGEDGES32, 0, 0);
     lngErrorcode = m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
@@ -70,8 +72,10 @@ void LabJack::Update(void)
     lngErrorcode = m_peGet (lngHandle, LJ_ioGET_TIMER, 0, &period_us, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
-    status.setNum(period_us / 1000 / 1000);
-    wheelSpeed.set_period(period_us / 1000 / 1000);
+    // need to add reset timer here and handle "inf" period as zero speed
+
+    status.setNum(period_us / 1000 / 1000); // show period in seconds
+    wheelSpeed.set_period(period_us / 1000 / 1000); //set peroid in seconds
     //speedms = dblValue / 1000 / 1000; //seconds
 }
 
