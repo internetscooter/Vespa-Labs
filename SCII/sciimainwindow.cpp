@@ -3,6 +3,8 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <iostream>
+#include <QElapsedTimer>
+#include <QtDebug>
 
 SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -30,8 +32,10 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
 
 void SCIIMainWindow::slotUpdate(void)
 {
+    QElapsedTimer timer;
+    timer.start();
     //statusBar()->showMessage("Reading Vespa LabJack...");
-    //Sleep(500);
+    // Sleep(500);
     vespaLabJack->Update();
 
     // Quick and dirty Temp file logging to capture some data
@@ -40,12 +44,15 @@ void SCIIMainWindow::slotUpdate(void)
     QTextStream out(logfile);
     out << now.toString()
             << "," << vespaLabJack->wheelSpeed.ms()
-            << "," << vespaLabJack->wheelSpeed.kmph() << "\n";
+            << "," << vespaLabJack->wheelSpeed.kmph()
+            << "," << vespaLabJack->wheelSpeed.mss()
+            << "," << vespaLabJack->wheelSpeed.hp() << "\n";
 
     //statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
     statusBar()->showMessage("Vespa LabJack: " + QString("%1").arg(vespaLabJack->wheelSpeed.kmph()*1000));
     ui->lcdNumber->display(QString("%1").arg(vespaLabJack->wheelSpeed.kmph(),0,'f',2));
     ui->svgSpeedometer->setValue(vespaLabJack->wheelSpeed.kmph()*1000);
+    qDebug() << "slotUpdate operation took" << timer.elapsed() << "milliseconds";;
 }
 
 SCIIMainWindow::~SCIIMainWindow()

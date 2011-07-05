@@ -4,7 +4,8 @@
 #include <windows.h>
 #include <speed.h>
 #include <QString>
-#include "LabJackUD.h" // this is a copy and will become outdated!!!
+#include <QElapsedTimer>
+#include "LabJackUD.h" // Warning the repository contains a copy and will become outdated!!!
 #include "LJUD_DynamicLinking.h"
 
 class LabJack
@@ -18,6 +19,7 @@ public:
     Speed wheelSpeed; // not the best place to have this - later split labjack and scooter coupling
                       // for now it is useful to define this class and use it directly
     QString status;
+    QElapsedTimer timer; // use the system clock for time measurements
 private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);
     //Define a variable to hold a handle to the loaded DLL.

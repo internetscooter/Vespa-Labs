@@ -1,6 +1,7 @@
 #include "labjack.h"
 #include <QObject>
 #include <QMessageBox>
+#include <QtDebug>
 
 LabJack::LabJack():
     lngHandle(0),
@@ -17,6 +18,7 @@ LabJack::LabJack():
     ErrorHandler(lngErrorcode, __LINE__, 0);
 
     status = "Ready";
+    timer.start(); // kick off the timing
 }
 
 // Configure the LabJack pins and timers - generic to start with later we'll have different ones
@@ -66,6 +68,7 @@ void LabJack::Configure(void)
 // get latest info
 void LabJack::Update(void)
 {
+    //timer.start();
     double period_us;
 
     // get timer value
@@ -75,8 +78,9 @@ void LabJack::Update(void)
     // need to add reset timer here and handle "inf" period as zero speed
 
     status.setNum(period_us / 1000 / 1000); // show period in seconds
-    wheelSpeed.set_period(period_us / 1000 / 1000); //set peroid in seconds
+    wheelSpeed.set_period_s(period_us / 1000 / 1000); //set peroid in seconds
     //speedms = dblValue / 1000 / 1000; //seconds
+    qDebug() << "Timestamp from start " << timer.elapsed() << "milliseconds";;
 }
 
 // from previous code (useful examples)
