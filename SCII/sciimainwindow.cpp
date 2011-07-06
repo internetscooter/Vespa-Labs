@@ -26,7 +26,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     //update screen every 0.5 seconds (as a test)
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(250);
+    timer->start(100);
     //ui->svgSpeedometer->setValue(10000);
 }
 

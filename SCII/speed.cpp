@@ -1,4 +1,5 @@
 #include "speed.h"
+#include <QtDebug>
 
 Speed::Speed()
 {
@@ -14,7 +15,9 @@ Speed::Speed(double ms, double c):
     lastMeasurementTime_ms(0),
     lastSpeed_ms(0)
 {
-    mass_kg = 220; // scooter and rider mass - move elsewhere
+    //mass_kg = 220; // scooter and rider mass - move elsewhere
+    //mass_kg = 183.7; // Matt
+    mass_kg = 229.5; // Paul
     speed_ms = ms;
     circumference_m = c;
     timer.start();
@@ -63,6 +66,11 @@ void Speed::set_ms(double ms) // set metres per second
     newtons = mass_kg * acceleration_mss;
     double averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
     power_w = newtons * averageSpeed_ms;
+    qDebug() << "last time: " << lastMeasurementTime_ms;
+    qDebug() << "this time: " << currentMeasurementTime_ms;
+    qDebug() << "ms difference: " << difference;
+    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
+
 }
 
 void Speed::set_period_s(double period_seconds) // set time for rotation

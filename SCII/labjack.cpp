@@ -6,7 +6,9 @@
 LabJack::LabJack():
     lngHandle(0),
     status("Initialising..."),
-    wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
+    // wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
+    // wheelSpeed(0,1.314), // Heinadau racer
+    wheelSpeed(0,1.360), // Sava MC31
     lngIOType(0), // may not be needed
     lngChannel(0) // may not be needed
 {
@@ -80,7 +82,6 @@ void LabJack::Update(void)
     status.setNum(period_us / 1000 / 1000); // show period in seconds
     wheelSpeed.set_period_s(period_us / 1000 / 1000); //set peroid in seconds
     //speedms = dblValue / 1000 / 1000; //seconds
-    qDebug() << "Timestamp from start " << timer.elapsed() << "milliseconds";;
 }
 
 // from previous code (useful examples)
