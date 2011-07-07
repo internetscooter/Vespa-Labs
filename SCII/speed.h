@@ -37,6 +37,8 @@ private:
     double newtons;                     // yes even more silly
     double power_w;                     // watt!?
     QFile *logfile;                     // for debugging
+    double difference; //???? should need this
+    double averageSpeed_ms;
 };
 
 #endif // SPEED_H

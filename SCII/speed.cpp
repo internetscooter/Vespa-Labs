@@ -29,7 +29,7 @@ Speed::Speed(double ms, double c):
     logfile = new QFile( "vespa_speed.log" );
     logfile->open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream log(logfile);
-    log << "ms last, ms this, ms diff, acceleration, last time, this time, time diff, newtons, average speed, power" << "\n";
+    //log << "ms last, ms this, ms diff, acceleration, last time, this time, time diff, newtons, average speed, power" << "\n";
 }
 
 double Speed::ms(void)
@@ -83,18 +83,19 @@ void Speed::set_ms(double ms) // set metres per second
     currentMeasurementTime_ms = timer.elapsed();
     speed_ms = ms;
     // calculate acceleration
-    double difference = speed_ms - lastSpeed_ms;
-    acceleration_mss = difference / (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
+    difference = speed_ms - lastSpeed_ms;
+    acceleration_mss = difference / (currentMeasurementTime_ms - lastMeasurementTime_ms);
     newtons = mass_kg * acceleration_mss;
-    double averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
+    averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
     power_w = newtons * averageSpeed_ms;
 
     QTextStream log(logfile);
     log << lastSpeed_ms << ","
         << speed_ms << ","
-        << lastMeasurementTime_ms << ","
-        << currentMeasurementTime_ms << ","
         << difference << ","
+        << lastMeasurementTime_ms << ","    
+        << currentMeasurementTime_ms << ","
+        << (currentMeasurementTime_ms - lastMeasurementTime_ms) << ","
         << acceleration_mss << ","
         << newtons  << ","
         << averageSpeed_ms << ","
