@@ -28,24 +28,27 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     logfile->open(QIODevice::WriteOnly | QIODevice::Text);
 
 
-
-    //update screen every 0.5 seconds (as a test)
-    QTimer *timer = new QTimer(this);
+    //update screen every 0.1 seconds
+    QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(100);
-    //ui->svgSpeedometer->setValue(10000);
+    timer->start(100);  // this should be smarter and checked against system time
+                        // we loose about 14ms per signal. Maybe Qt has a smarter timer??
+
+    sim = 1000000;
 }
 
 void SCIIMainWindow::slotUpdate(void)
 {
-    QElapsedTimer timer;
-    timer.start();
-    //statusBar()->showMessage("Reading Vespa LabJack...");
-    // Sleep(500);
     double period_us = vespaLabJack->GetTimer0Value();
+
+    //overide value to simulate acceleration
+//    sim -= 1000;
+//    period_us = sim;
 
     // need to add reset timer here and handle "inf" period as zero speed
     wheelSpeed.set_period_s(period_us / 1000 / 1000); //set period in seconds
+
+
 
     // Quick and dirty Temp file logging to capture some data
     // no error checking! Comment out when not being used
@@ -61,7 +64,6 @@ void SCIIMainWindow::slotUpdate(void)
     statusBar()->showMessage("Vespa LabJack: " + QString("%1").arg(wheelSpeed.kmph()*1000));
     ui->lcdNumber->display(QString("%1").arg(wheelSpeed.kmph(),0,'f',2));
     ui->svgSpeedometer->setValue(wheelSpeed.kmph()*1000);
-    qDebug() << "slotUpdate operation took" << timer.elapsed() << "milliseconds";;
 }
 
 SCIIMainWindow::~SCIIMainWindow()

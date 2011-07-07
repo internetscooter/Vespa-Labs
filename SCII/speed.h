@@ -37,7 +37,6 @@ private:
     double newtons;                     // yes even more silly
     double power_w;                     // watt!?
     QFile *logfile;                     // for debugging
-    QTextStream log;
 };
 
 #endif // SPEED_H

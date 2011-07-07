@@ -24,6 +24,7 @@ private:
     LabJack *vespaLabJack;
     QFile *logfile;
     Speed wheelSpeed; // not the best place to have this - later make Vespa class
+    double sim;
 
 public slots:
 

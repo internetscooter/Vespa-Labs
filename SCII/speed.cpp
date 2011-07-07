@@ -62,8 +62,22 @@ double Speed::period_s(void)
     return 0;
 }
 
+void Speed::set_period_s(double period_seconds) // set time for rotation
+{
+    if (circumference_m > 0 && period_seconds != 0) // only do this if we have a tyre circumference defined and wheels are turning
+    {
+        double hertz = 1 / period_seconds; // work out how many times we rotate a second
+        //metres_per_second = circumference_metres * hertz;
+        set_ms(circumference_m * hertz);
+    }
+    else
+    {
+        set_ms(0);
+    }
+}
 void Speed::set_ms(double ms) // set metres per second
 {
+    // update info and keep last readings
     lastSpeed_ms = speed_ms;
     lastMeasurementTime_ms = currentMeasurementTime_ms;
     currentMeasurementTime_ms = timer.elapsed();
@@ -75,7 +89,7 @@ void Speed::set_ms(double ms) // set metres per second
     double averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
     power_w = newtons * averageSpeed_ms;
 
-
+    QTextStream log(logfile);
     log << lastSpeed_ms << ","
         << speed_ms << ","
         << lastMeasurementTime_ms << ","
@@ -86,19 +100,10 @@ void Speed::set_ms(double ms) // set metres per second
         << averageSpeed_ms << ","
         << power_w << "\n";
 
-//    qDebug() << "last time: " << lastMeasurementTime_ms;
-//    qDebug() << "this time: " << currentMeasurementTime_ms;
-//    qDebug() << "ms difference: " << difference;
-//    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
-
+    qDebug() << "last time: " << lastMeasurementTime_ms;
+    qDebug() << "this time: " << currentMeasurementTime_ms;
+    qDebug() << "ms difference: " << difference;
+    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
 }
 
-void Speed::set_period_s(double period_seconds) // set time for rotation
-{
-    if (circumference_m > 0) // only do this if we have a tyre circumference defined
-    {
-        double hertz = 1 / period_seconds; // work out how many times we rotate a second
-        //metres_per_second = circumference_metres * hertz;
-        set_ms(circumference_m * hertz);
-    }
-}
+
