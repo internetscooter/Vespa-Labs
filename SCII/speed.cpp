@@ -84,7 +84,7 @@ void Speed::set_ms(double ms) // set metres per second
     speed_ms = ms;
     // calculate acceleration
     difference = speed_ms - lastSpeed_ms;
-    acceleration_mss = difference / (currentMeasurementTime_ms - lastMeasurementTime_ms);
+    acceleration_mss = difference / (currentMeasurementTime_ms - lastMeasurementTime_ms) * 1000;
     newtons = mass_kg * acceleration_mss;
     averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
     power_w = newtons * averageSpeed_ms;
