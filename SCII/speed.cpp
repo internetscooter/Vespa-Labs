@@ -1,5 +1,6 @@
 #include "speed.h"
 #include <QtDebug>
+#include <QTextStream>
 
 Speed::Speed()
 {
@@ -22,6 +23,13 @@ Speed::Speed(double ms, double c):
     circumference_m = c;
     timer.start();
     currentMeasurementTime_ms = timer.elapsed();
+
+    // Quick and dirty Temp file logging to capture some data
+    // no error checking! Comment out when not being used
+    logfile = new QFile( "vespa_speed.log" );
+    logfile->open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream log(logfile);
+    log << "ms last, ms this, ms diff, acceleration, last time, this time, time diff, newtons, average speed, power" << "\n";
 }
 
 double Speed::ms(void)
@@ -66,10 +74,22 @@ void Speed::set_ms(double ms) // set metres per second
     newtons = mass_kg * acceleration_mss;
     double averageSpeed_ms = (speed_ms + lastSpeed_ms)/2;
     power_w = newtons * averageSpeed_ms;
-    qDebug() << "last time: " << lastMeasurementTime_ms;
-    qDebug() << "this time: " << currentMeasurementTime_ms;
-    qDebug() << "ms difference: " << difference;
-    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
+
+
+    log << lastSpeed_ms << ","
+        << speed_ms << ","
+        << lastMeasurementTime_ms << ","
+        << currentMeasurementTime_ms << ","
+        << difference << ","
+        << acceleration_mss << ","
+        << newtons  << ","
+        << averageSpeed_ms << ","
+        << power_w << "\n";
+
+//    qDebug() << "last time: " << lastMeasurementTime_ms;
+//    qDebug() << "this time: " << currentMeasurementTime_ms;
+//    qDebug() << "ms difference: " << difference;
+//    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
 
 }
 

@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QFile>
 #include "labjack.h"
+#include <speed.h>
 
 namespace Ui {
     class SCIIMainWindow;
@@ -22,6 +23,7 @@ private:
     Ui::SCIIMainWindow *ui;
     LabJack *vespaLabJack;
     QFile *logfile;
+    Speed wheelSpeed; // not the best place to have this - later make Vespa class
 
 public slots:
 

@@ -2,6 +2,8 @@
 #define SPEED_H
 // This class covers speed and related calculations
 #include <QElapsedTimer> // including keeping a track of it's own time
+#include <QFile>
+#include <QTextStream>
 
 class Speed
 {
@@ -34,6 +36,8 @@ private:
     double mass_kg;                     // now this is a bit silly - mass of the scooter and rider - needs to be moved elsewhere
     double newtons;                     // yes even more silly
     double power_w;                     // watt!?
+    QFile *logfile;                     // for debugging
+    QTextStream log;
 };
 
 #endif // SPEED_H

@@ -2,7 +2,6 @@
 #define LABJACK_H
 #include <stdio.h>
 #include <windows.h>
-#include <speed.h>
 #include <QString>
 #include <QElapsedTimer>
 #include "LabJackUD.h" // Warning the repository contains a copy and will become outdated!!!
@@ -14,10 +13,8 @@ public:
     LabJack();
     void LoadLabJackUD (void);
     void Configure(void);
-    void Update(void);
+    double GetTimer0Value(void);
     void TestExample (void);
-    Speed wheelSpeed; // not the best place to have this - later split labjack and scooter coupling
-                      // for now it is useful to define this class and use it directly
     QString status;
     QElapsedTimer timer; // use the system clock for time measurements
 private:

@@ -6,9 +6,6 @@
 LabJack::LabJack():
     lngHandle(0),
     status("Initialising..."),
-    // wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
-    // wheelSpeed(0,1.314), // Heinadau racer
-    wheelSpeed(0,1.360), // Sava MC31
     lngIOType(0), // may not be needed
     lngChannel(0) // may not be needed
 {
@@ -68,7 +65,7 @@ void LabJack::Configure(void)
 }
 
 // get latest info
-void LabJack::Update(void)
+double LabJack::GetTimer0Value(void)
 {
     //timer.start();
     double period_us;
@@ -76,12 +73,8 @@ void LabJack::Update(void)
     // get timer value
     lngErrorcode = m_peGet (lngHandle, LJ_ioGET_TIMER, 0, &period_us, 0);
     ErrorHandler(lngErrorcode, __LINE__, 0);
-
-    // need to add reset timer here and handle "inf" period as zero speed
-
     status.setNum(period_us / 1000 / 1000); // show period in seconds
-    wheelSpeed.set_period_s(period_us / 1000 / 1000); //set peroid in seconds
-    //speedms = dblValue / 1000 / 1000; //seconds
+    return period_us;
 }
 
 // from previous code (useful examples)
