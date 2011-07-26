@@ -19,7 +19,8 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     statusBar()->showMessage("Locating Vespa LabJack...");
     vespaLabJack = new LabJack();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
-    vespaLabJack->Configure();
+    vespaLabJack->ConfigureStreamed();
+    //vespaLabJack->StreamTest();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
 
     // Quick and dirty Temp file logging to capture some data

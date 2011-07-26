@@ -13,6 +13,8 @@ public:
     LabJack();
     void LoadLabJackUD (void);
     void Configure(void);
+    void ConfigureStreamed(void);
+    void StreamTest(void);
     double GetTimer0Value(void);
     void TestExample (void);
     QString status;
