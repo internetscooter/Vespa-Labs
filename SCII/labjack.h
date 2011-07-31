@@ -16,6 +16,8 @@ public:
     void ConfigureStreamed(void);
     void StreamTest(void);
     double GetTimer0Value(void);
+    void StreamUpdate(void);
+    void StreamStop(void);
     void TestExample (void);
     QString status;
     QElapsedTimer timer; // use the system clock for time measurements

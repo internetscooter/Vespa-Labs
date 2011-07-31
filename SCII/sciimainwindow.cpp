@@ -32,7 +32,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     //update screen every 0.1 seconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(100);  // this should be smarter and checked against system time
+    timer->start(1000);  // this should be smarter and checked against system time
                         // we loose about 14ms per signal. Maybe Qt has a smarter timer??
 
     sim = 1000000;
@@ -40,14 +40,14 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
 
 void SCIIMainWindow::slotUpdate(void)
 {
-    double period_us = vespaLabJack->GetTimer0Value();
-
+    //double period_us = vespaLabJack->GetTimer0Value();
+vespaLabJack->StreamUpdate();
     //overide value to simulate acceleration
 //    sim -= 1000;
 //    period_us = sim;
 
     // need to add reset timer here and handle "inf" period as zero speed
-    wheelSpeed.set_period_s(period_us / 1000 / 1000); //set period in seconds
+    //wheelSpeed.set_period_s(period_us / 1000 / 1000); //set period in seconds
 
 
 
