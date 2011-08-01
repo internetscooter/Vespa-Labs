@@ -6,7 +6,6 @@
 #include <QElapsedTimer>
 #include <QtDebug>
 
-
 SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     QMainWindow(parent),
     // wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
@@ -29,19 +28,18 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     logfile->open(QIODevice::WriteOnly | QIODevice::Text);
 
 
-    //update screen every 0.1 seconds
+    //update screen every x seconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(1000);  // this should be smarter and checked against system time
-                        // we loose about 14ms per signal. Maybe Qt has a smarter timer??
+    timer->start(1000);
 
-    sim = 1000000;
+    sim = 1000000; //used later for simulating input
 }
 
 void SCIIMainWindow::slotUpdate(void)
 {
     //double period_us = vespaLabJack->GetTimer0Value();
-vespaLabJack->StreamUpdate();
+    vespaLabJack->StreamUpdate();
     //overide value to simulate acceleration
 //    sim -= 1000;
 //    period_us = sim;

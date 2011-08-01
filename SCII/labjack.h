@@ -23,6 +23,7 @@ public:
     QElapsedTimer timer; // use the system clock for time measurements
 private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);
+    void Call (LJ_ERROR lngErrorcode, long lngLineNumber); //same as above for inline error checking of calls
     //Define a variable to hold a handle to the loaded DLL.
     HINSTANCE hDLLInstance;
     double dblDriverVersion;
@@ -30,6 +31,7 @@ private:
     LJ_HANDLE lngHandle;
     long lngIOType;
     long lngChannel;
+    double scanRate; // for streaming speed
 
     //Define variables for the UD functions.
     tListAll m_pListAll;
