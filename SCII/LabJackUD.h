@@ -1,11 +1,11 @@
-#warning "Local Copy of LabJackUD.h being used - change to your system LabJackUD.h header or there will be errors!!!"
+#warning "Local Copy of LabJackUD.h v 3.25 being used - change to your system LabJackUD.h header or there will be errors!!!"
 
 #ifndef LJHEADER_H
 #define LJHEADER_H
 
 // the version of this driver.  Call GetDriverVersion() to determine the version of the DLL you have.
 // It should match this number, otherwise your .h and DLL's are from different versions.
-#define DRIVER_VERSION 3.15
+#define DRIVER_VERSION 3.25
 
 #define LJ_HANDLE long
 #define LJ_ERROR long
@@ -70,6 +70,14 @@ LJ_ERROR _stdcall eGetSS(LJ_HANDLE Handle, const char *pIOType, const char *pCha
 LJ_ERROR _stdcall ePut(LJ_HANDLE Handle, long IOType, long Channel, double Value, long x1);
 LJ_ERROR _stdcall ePutS(LJ_HANDLE Handle, const char *pIOType, long Channel, double Value, long x1);
 LJ_ERROR _stdcall ePutSS(LJ_HANDLE Handle, const char *pIOType, const char *pChannel, double Value, long x1);
+
+LJ_ERROR _stdcall eGet_DblArray(LJ_HANDLE Handle, long IOType, long Channel, double *pValue, double *x1);
+LJ_ERROR _stdcall eGet_U8Array(LJ_HANDLE Handle, long IOType, long Channel, double *pValue, unsigned char *x1);
+LJ_ERROR _stdcall eGetS_DblArray(LJ_HANDLE Handle, const char *pIOType, long Channel, double *pValue, double *x1);
+LJ_ERROR _stdcall eGetS_U8Array(LJ_HANDLE Handle, const char *pIOType, long Channel, double *pValue, unsigned char *x1);
+LJ_ERROR _stdcall eGetSS_DblArray(LJ_HANDLE Handle, const char *pIOType, const char *pChannel, double *pValue, double *x1);
+LJ_ERROR _stdcall eGetSS_U8Array(LJ_HANDLE Handle, const char *pIOType, const char *pChannel, double *pValue, unsigned char *x1);
+
 // these functions do AddRequest, Go, and GetResult in one step.  The Get versions are designed for inputs or retrieving parameters
 // as it takes a pointer to a double where the result is placed, but can be used for outputs if pValue is preset to the 
 // desired value.  This is also useful for things like StreamRead where a value is required to be input and a value is
@@ -191,6 +199,9 @@ void _stdcall ErrorToString(LJ_ERROR ErrorCode, char *pString);
 double _stdcall GetDriverVersion(void);
 // returns the version # of this driver, the resultant number should match the number at the top of this header file
 
+unsigned long _stdcall GetThreadID(void);
+// returns the ID of the current thread
+
 
 LJ_ERROR _stdcall TCVoltsToTemp( long TCType, double TCVolts, double CJTempK, double *pTCTempK);
 // Utility function to convert voltage readings from thermocouples to temperatures.  Use the LJ_tt constants
@@ -256,7 +267,8 @@ const long LJ_ioPUT_DIGITAL_PORT = 45; // UE9 + U3
 // request to set FIO0 high, add a request for a wait of 100000, add a
 // request to set FIO0 low, then Go.  Channel is ignored.  Value is
 // microseconds to wait and should range from 0 to 8388480.  The actual
-// resolution of the wait is 128 microseconds.
+// resolution of the wait is 128 microseconds.  On U3 hardware version
+// 1.20 the resolution and delay times are doubled. 
 const long LJ_ioPUT_WAIT = 70; // U3
 
 // counter.  Input only.
@@ -322,6 +334,10 @@ const long LJ_ioPIN_CONFIGURATION_RESET = 2017; // U3
 // is 512 bytes to the UE9 and 16384 bytes to the U3.
 const long LJ_ioRAW_OUT = 100; // UE9 + U3
 const long LJ_ioRAW_IN = 101; // UE9 + U3
+
+const long LJ_ioRAWMB_OUT = 104; // Used with LJ_ctETHERNET_MB to send raw modbus commands to the modbus TCP/IP Socket
+const long LJ_ioRAWMB_IN = 105; 
+
 // sets the default power up settings based on the current settings of the device AS THIS DLL KNOWS.  This last part
 // basically means that you should set all parameters directly through this driver before calling this.  This writes 
 // to flash which has a limited lifetime, so do not do this too often.  Rated endurance is 20,000 writes.
@@ -377,7 +393,7 @@ const long LJ_ioGET_STREAM_DATA = 204;
 // device and scan rate but typically results in the callback being called about every 10ms.
 
 /* example:
-void StreamCallback(long ScansAvailable, double UserValue) 
+void StreamCallback(long ScansAvailable, long UserValue) 
 {
    ... do stuff when a callback occurs (retrieve data for example)
 }
@@ -431,12 +447,13 @@ const long LJ_ioGET_CONFIG = 1001; // UE9 + U3
 
 
 // channel numbers used for CONFIG types:
-// UE9 + U3
-const long LJ_chLOCALID = 0; // UE9 + U3
-const long LJ_chHARDWARE_VERSION = 10; // UE9 + U3 (Read Only)
-const long LJ_chSERIAL_NUMBER = 12; // UE9 + U3 (Read Only)
-const long LJ_chFIRMWARE_VERSION = 11; // UE9 + U3 (Read Only)
-const long LJ_chBOOTLOADER_VERSION = 15; // UE9 + U3 (Read Only)
+// UE9 + U3 + U6
+const long LJ_chLOCALID = 0; // UE9 + U3 + U6
+const long LJ_chHARDWARE_VERSION = 10; // UE9 + U3 + U6 (Read Only)
+const long LJ_chSERIAL_NUMBER = 12; // UE9 + U3 + U6 (Read Only)
+const long LJ_chFIRMWARE_VERSION = 11; // UE9 + U3 + U6 (Read Only)
+const long LJ_chBOOTLOADER_VERSION = 15; // UE9 + U3 + U6 (Read Only)
+const long LJ_chPRODUCTID = 8; //UE9 + U3 + U6 (Read Only)
 
 // UE9 specific:
 const long LJ_chCOMM_POWER_LEVEL = 1; //UE9
@@ -446,7 +463,6 @@ const long LJ_chSUBNET = 4; //UE9
 const long LJ_chPORTA = 5; //UE9
 const long LJ_chPORTB = 6; //UE9
 const long LJ_chDHCP = 7; //UE9
-const long LJ_chPRODUCTID = 8; //UE9
 const long LJ_chMACADDRESS = 9; //UE9
 const long LJ_chCOMM_FIRMWARE_VERSION = 11;  
 const long LJ_chCONTROL_POWER_LEVEL = 13; //UE9 
@@ -458,8 +474,10 @@ const long LJ_chUE9_PRO = 19; // UE9 (Read Only)
 // U3 only:
 // sets the state of the LED 
 const long LJ_chLED_STATE = 17; // U3   value = LED state
+
 const long LJ_chSDA_SCL = 18; // U3   enable / disable SDA/SCL as digital I/O
-const long LJ_chU3HV = 22;
+
+const long LJ_chU3HV = 22; // U3 (Read Only) Value will be 1 for a U3-HV and 0 for a U3-LV or a U3 with hardware version < 1.30
 
 // U6 only:
 const long LJ_chU6_PRO = 23;
@@ -604,7 +622,6 @@ const long LJ_ttT = 6008;
 
 // other constants:
 // ranges (not all are supported by all devices):
-const long LJ_rgAUTO = 0;
 
 const long LJ_rgBIP20V = 1;  // -20V to +20V
 const long LJ_rgBIP10V = 2;  // -10V to +10V
@@ -691,9 +708,10 @@ const long LJ_swSLEEP = 12; // wait by sleeping (don't do this in the primary th
 // with the appropriate channel constant so set the value inside the driver, then call
 // LJ_ioSWDT_CONFIG to enable that change. 
 const long LJ_ioSWDT_CONFIG = 507; // UE9 & U3 - Use with LJ_chSWDT_ENABLE or LJ_chSWDT_DISABLE
+const long LJ_ioSWDT_STROKE = 508;// UE9 - Used when SWDT_STRICT_ENABLE is turned on to renew the watchdog. 
 
 const long LJ_chSWDT_ENABLE = 5200; // UE9 & U3 - used with LJ_ioSWDT_CONFIG to enable watchdog.  Value paramter is number of seconds to trigger
-const long LJ_chSWDT_DISABLE = 5201; // UE9 & U3 - used with LJ_ioSWDT_CONFIG to enable watchdog.
+const long LJ_chSWDT_DISABLE = 5201; // UE9 & U3 - used with LJ_ioSWDT_CONFIG to disable watchdog.
 
 // Used with LJ_io_PUT_CONFIG
 const long LJ_chSWDT_RESET_DEVICE= 5202; // U3 - Reset U3 on watchdog reset.  Write only. 
@@ -710,7 +728,8 @@ const long LJ_chSWDT_UPDATE_DAC1 = 5212; // UE9 - Update DAC1 settings after res
 const long LJ_chSWDT_DAC0 = 5213; // UE9 - voltage to set DAC0 at on watchdog reset.  Write only. 
 const long LJ_chSWDT_DAC1 = 5214; // UE9 - voltage to set DAC1 at on watchdog reset.  Write only. 
 const long LJ_chSWDT_DAC_ENABLE = 5215; // UE9 - Enable DACs on watchdog reset.  Default is true.  Both DACs are enabled or disabled togeather.  Write only. 
-
+const long LJ_chSWDT_STRICT_ENABLE = 5216; // UE9 - Watchdog will only renew with LJ_ioSWDT_STROKE command.
+const long LJ_chSWDT_INITIAL_ROLL_TIME = 5217; // UE9 - Watchdog timer for the first cycle when powered on, after watchdog triggers a reset the normal value is used.  Set to 0 to disable. 
 
 // END BETA CONSTANTS
 
@@ -772,6 +791,7 @@ const LJ_ERROR LJE_CANT_CONFIGURE_PIN_FOR_ANALOG = 67;
 const LJ_ERROR LJE_CANT_CONFIGURE_PIN_FOR_DIGITAL = 68;
 const LJ_ERROR LJE_TC_PIN_OFFSET_MUST_BE_4_TO_8 = 70;
 const LJ_ERROR LJE_INVALID_DIFFERENTIAL_CHANNEL = 71;
+const LJ_ERROR LJE_DSP_SIGNAL_OUT_OF_RANGE = 72;
 
 // Other errors
 const LJ_ERROR LJE_SHT_CRC = 52;
@@ -812,6 +832,7 @@ const LJ_ERROR LJE_COMM_TIMEOUT = 1011;
 const LJ_ERROR LJE_USB_DRIVER_NOT_FOUND = 1012;
 const LJ_ERROR LJE_INVALID_CONNECTION_TYPE = 1013;
 const LJ_ERROR LJE_INVALID_MODE = 1014;
+const LJ_ERROR LJE_DEVICE_NOT_CONNECTED = 1015; // occurs when a LabJack that was opened is no longer connected to the system
 
 // these errors aren't actually generated by the UD, but could be handy in your code to indicate an event as an error code without
 // conflicting with LabJack error codes
@@ -915,6 +936,16 @@ const LJ_ERROR LJE_UNABLE_TO_READ_CALDATA = -2; // defaults used instead
 3.11: Fixed a memory leak when devices were kept open via USB
 3.12: Fixed various U6 bugs
 3.13: Added LJE_DEVICE_ALREADY_OPEN error to occur when another program/process has the LabJack open
+3.14: Various minor bug fixes 
+3.15: Added full support for Asynch communication on the U6
+3.16: Fixed bug causing a delay when the LabJackUD driver was unloaded in a program
+3.17: Added support for SWDT settings for initial roll time and strict mode
+3.18: Fixed a bug with negative timer values when using ETCConfig with LJ_tmQUAD on the U3 and U6
+      Fixed bug causing a delay when stream on U3/U6 was stopped
+3.19: Fixed bug that caused LJ_ioPUT_TIMER_VALUE to corrupt other results when done in the same Go or GoOne call
+3.22: Fixed bug in the U6 and U3 that caused excessive delays when com buffer started to fill
+3.23: Added GetThreadID function
+
 */
 
 
@@ -945,6 +976,7 @@ const long LJ_chASYNCH_CONFIG = 5116; // UE9 + U3
 const long LJ_rgUNIP500V = 110; // 0V to +0.500V
 const long LJ_ioENABLE_POS_PULLDOWN = 2018; // U6
 const long LJ_ioENABLE_NEG_PULLDOWN = 2019; // U6
+const long LJ_rgAUTO = 0;
 
 
 #ifdef  __cplusplus
