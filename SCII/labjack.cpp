@@ -66,7 +66,9 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
     Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swNONE, 0, 0), __LINE__);
 
     //Add Timer0 200 LSW (low bit) to the scan
-    Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 200, 0, 0, 0), __LINE__);
+    //Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 200, 0, 0, 0), __LINE__);
+    //above with reset...
+    Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 230, 0, 0, 0), __LINE__);
 
     //Add TC_Capture 224 MSW - (high bit for the above) to the scan
     Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 224, 0, 0, 0), __LINE__);
@@ -141,16 +143,22 @@ void LabJack::StreamUpdate(void)
     Call(m_peGet(lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS, &numScansRequested, padblData),__LINE__);
 
     //The displays the number of scans that were actually read.
-    qDebug() << "Number read = " << numScansRequested;
+    //qDebug() << "Number read = " << numScansRequested;
     //This displays just the first scan.
-    qDebug() << "First scan = " << adblData[0] << "," << adblData[1] << "," << adblData[2] << "," << adblData[3];
+    //qDebug() << "First scan = " << adblData[0] << "," << adblData[1] << "," << adblData[2] << "," << adblData[3];
 
+    for(k=0;k<50;k+=2)
+    {
+            //adblData[k] = 99999.0;
+        if (adblData[k] > 0)
+        qDebug() << "V: " << adblData[k+1] << "," << adblData[k];
+    }
     //Retrieve the current backlog.  The UD driver retrieves stream data from
     //the U3 in the background, but if the computer is too slow for some reason
     //the driver might not be able to read the data as fast as the U3 is
     //acquiring it, and thus there will be data left over in the U3 buffer.
     Call(m_peGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_COMM, &dblCommBacklog, 0),__LINE__);
-    qDebug() << "Comm Backlog = " << dblCommBacklog;
+    //qDebug() << "Comm Backlog = " << dblCommBacklog;
 }
 
 void LabJack::StreamStop(void)
