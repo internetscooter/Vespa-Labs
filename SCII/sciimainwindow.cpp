@@ -31,7 +31,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     //update screen every x seconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(1000);
+    timer->start(100);
 
     sim = 1000000; //used later for simulating input
 }

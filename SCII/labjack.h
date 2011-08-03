@@ -31,7 +31,8 @@ private:
     LJ_HANDLE lngHandle;
     long lngIOType;
     long lngChannel;
-    double scanRate; // for streaming speed
+    double scanRate_Hz; // for streaming speed at samples per second
+    double totalTime_ms;
 
     //Define variables for the UD functions.
     tListAll m_pListAll;

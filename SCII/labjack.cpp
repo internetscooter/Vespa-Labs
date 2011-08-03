@@ -5,7 +5,8 @@
 
 LabJack::LabJack():
     lngHandle(0),
-    scanRate(100),
+    scanRate_Hz(100),
+    totalTime_ms(0),
     status("Initialising...")
 {
     // Load the DLL
@@ -57,10 +58,10 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
     double dblValue=0;
 
     // Set the scan rate.
-    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_SCAN_FREQUENCY, scanRate, 0, 0), __LINE__);
+    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_SCAN_FREQUENCY, scanRate_Hz, 0, 0), __LINE__);
 
     // Give the driver a 5 second buffer (scanRate * 2 channels * 5 seconds).
-    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_BUFFER_SIZE, scanRate*2*5, 0, 0), __LINE__);
+    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_BUFFER_SIZE, scanRate_Hz*2*5, 0, 0), __LINE__);
 
     // Configure reads to retrieve whatever data is available without waiting (wait mode LJ_swNONE).
     Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swNONE, 0, 0), __LINE__);
@@ -115,9 +116,10 @@ double LabJack::GetTimer0Value(void)
 void LabJack::StreamUpdate(void)
 {
     long k=0;
-    double numScans = 100;  //2x the expected some number
+    double ms=0;
+    double numScans = scanRate_Hz * 2 / 10;  //2x the expected some number
     double numScansRequested = numScans * 2;
-    double adblData[200] = {0};  //Max buffer size (#channels*numScansRequested)
+    double scanData[20] = {0};  //Max buffer size (#channels*numScansRequested)
     double dblCommBacklog=0;
 
     //Make a long parameter which holds the address of the data array.  We do this
@@ -127,31 +129,37 @@ void LabJack::StreamUpdate(void)
     //it has the address of an array.  Since x1 is not declared as a pointer, the
     //compiler will complain if you just pass the array pointer without casting
     //it to a long as follows.
-    long padblData = (long)&adblData[0];
+    long pScanData = (long)&scanData[0];
 
     //init array so we can easily tell if it has changed
-    for(k=0;k<numScans*2;k++)
+    for(k=0;k<numScansRequested;k++)
     {
-            adblData[k] = 99999.0;
+            scanData[k] = 99999.0;
     }
 
     //Read the data.  We will request twice the number we expect, to
     //make sure we get everything that is available.
     //Note that the array we pass must be sized to hold enough SAMPLES, and
     //the Value we pass specifies the number of SCANS to read.
-    numScansRequested=numScans;
-    Call(m_peGet(lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS, &numScansRequested, padblData),__LINE__);
+    //numScansRequested=numScans;
+    Call(m_peGet(lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS, &numScansRequested, pScanData),__LINE__);
 
     //The displays the number of scans that were actually read.
     //qDebug() << "Number read = " << numScansRequested;
     //This displays just the first scan.
     //qDebug() << "First scan = " << adblData[0] << "," << adblData[1] << "," << adblData[2] << "," << adblData[3];
 
-    for(k=0;k<50;k+=2)
+    for(k=0;k<numScansRequested;k+=2)
     {
             //adblData[k] = 99999.0;
-        if (adblData[k] > 0)
-        qDebug() << "V: " << adblData[k+1] << "," << adblData[k];
+        if (scanData[k] > 0)
+        {
+            ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
+            totalTime_ms += ms;
+            qDebug() << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
+        }
+
     }
     //Retrieve the current backlog.  The UD driver retrieves stream data from
     //the U3 in the background, but if the computer is too slow for some reason
