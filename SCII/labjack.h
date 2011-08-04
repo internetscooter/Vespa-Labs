@@ -19,6 +19,7 @@ public:
     void StreamUpdate(void);
     void StreamStop(void);
     void TestExample (void);
+    void CreateTestPulse(int milliseconds = 1);
     QString status;
     QElapsedTimer timer; // use the system clock for time measurements
 private:

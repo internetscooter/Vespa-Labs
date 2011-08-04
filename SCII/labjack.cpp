@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QtDebug>
+#include <QDateTime>
 
 LabJack::LabJack():
     lngHandle(0),
@@ -17,7 +18,7 @@ LabJack::LabJack():
 
     // Do a reset (just to be safe) and wait before trying anything else
     m_pResetLabJack(lngHandle);
-    Sleep(5000);
+    Sleep(8000);
 
     // Reset pin assignments are in the factory default condition.
     Call (m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
@@ -44,8 +45,13 @@ void LabJack::Configure(void)
     // Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0), __LINE__);
 
+    //Set FIO5 to output-low.
+    Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
+
     // Execute the requests.
     Call(m_pGoOne (lngHandle), __LINE__);
+
+    status = "Configured";
 }
 
 // trying out streamed mode for faster reads and more accuracy
@@ -99,6 +105,13 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
     //from the start stream command.
     qDebug() << "Actual Scan Rate = " << dblValue;
     qDebug() << "Actual Sample Rate = " << 2*dblValue;
+
+    double period_us;
+
+    // reset timer value
+    Call(m_peGet (lngHandle, LJ_ioGET_TIMER, 0, &period_us, 0),__LINE__);
+
+    status = "Streamed Configured";
 }
 
 // get latest info
@@ -113,14 +126,30 @@ double LabJack::GetTimer0Value(void)
     return period_us;
 }
 
+void LabJack::CreateTestPulse(int milliseconds)
+{
+    //Set FIO5 to output-high.
+    //AddRequest (lngHandle, LJ_ioPUT_DIGITAL_BIT, 3, 1, 0, 0);
+    Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 1, 0),__LINE__);
+    Sleep(milliseconds);
+    //Set FIO5 to output-low.
+    Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
+}
+
 void LabJack::StreamUpdate(void)
 {
+    //qDebug() << "Scan?";
     long k=0;
     double ms=0;
-    double numScans = scanRate_Hz * 2 / 10;  //2x the expected some number
+    double numScans = scanRate_Hz * 2;  //2x the expected some number
     double numScansRequested = numScans * 2;
-    double scanData[20] = {0};  //Max buffer size (#channels*numScansRequested)
+    double scanData[(int)numScansRequested];// = {0};  //Max buffer size (#channels*numScansRequested)
+    memset(scanData,0,numScansRequested*sizeof(double));
+//    int boardAux[length][length];
+//    memset( boardAux, 0, length*length*sizeof(int) );
     double dblCommBacklog=0;
+
+    //qDebug() << "Scan!";
 
     //Make a long parameter which holds the address of the data array.  We do this
     //so the compiler does not generate a warning in the eGet call that retrieves
@@ -149,6 +178,8 @@ void LabJack::StreamUpdate(void)
     //This displays just the first scan.
     //qDebug() << "First scan = " << adblData[0] << "," << adblData[1] << "," << adblData[2] << "," << adblData[3];
 
+    QDateTime now = QDateTime::currentDateTime();
+
     for(k=0;k<numScansRequested;k+=2)
     {
             //adblData[k] = 99999.0;
@@ -156,9 +187,10 @@ void LabJack::StreamUpdate(void)
         {
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
             totalTime_ms += ms;
-            qDebug() << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
         }
+         //qDebug() << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
 
     }
     //Retrieve the current backlog.  The UD driver retrieves stream data from

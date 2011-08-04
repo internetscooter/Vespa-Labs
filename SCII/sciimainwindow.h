@@ -28,7 +28,8 @@ private:
 
 public slots:
 
-        virtual void slotUpdate();	// updates things screen with fresh information
+    virtual void slotUpdate();	// updates things screen with fresh information
+    virtual void slotPulseGen();  // generates a pulse to simulate a reed switch trigger
 };
 
 #endif // SCIIMAINWINDOW_H

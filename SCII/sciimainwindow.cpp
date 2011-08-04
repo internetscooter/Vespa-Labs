@@ -19,6 +19,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     vespaLabJack = new LabJack();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
     vespaLabJack->ConfigureStreamed();
+    //vespaLabJack->Configure();
     //vespaLabJack->StreamTest();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
 
@@ -32,6 +33,11 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
     timer->start(100);
+
+    //simulate pulses (requires FI05 to be connected to FIO4)
+    QTimer *pulseTimer = new QTimer();
+    connect(pulseTimer, SIGNAL(timeout()), this, SLOT(slotPulseGen()));
+    pulseTimer->start(1000);
 
     sim = 1000000; //used later for simulating input
 }
@@ -63,6 +69,11 @@ void SCIIMainWindow::slotUpdate(void)
     statusBar()->showMessage("Vespa LabJack: " + QString("%1").arg(wheelSpeed.kmph()*1000));
     ui->lcdNumber->display(QString("%1").arg(wheelSpeed.kmph(),0,'f',2));
     ui->svgSpeedometer->setValue(wheelSpeed.kmph()*1000);
+}
+
+void SCIIMainWindow::slotPulseGen(void)
+{
+    vespaLabJack->CreateTestPulse(1);
 }
 
 SCIIMainWindow::~SCIIMainWindow()
