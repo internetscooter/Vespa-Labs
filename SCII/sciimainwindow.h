@@ -6,6 +6,7 @@
 #include <QFile>
 #include "labjack.h"
 #include <speed.h>
+#include "labjackthread.h"
 
 namespace Ui {
     class SCIIMainWindow;
@@ -25,6 +26,8 @@ private:
     QFile *logfile;
     Speed wheelSpeed; // not the best place to have this - later make Vespa class
     double sim;
+    QTimer *pulseTimer;
+    LabjackThread *ljthread;
 
 public slots:
 

@@ -3,11 +3,13 @@
 #include <QMessageBox>
 #include <QtDebug>
 #include <QDateTime>
+#include <qapplication.h>
 
 LabJack::LabJack():
     lngHandle(0),
-    scanRate_Hz(100),
+    scanRate_Hz(50),
     totalTime_ms(0),
+    pulseCount(0),
     status("Initialising...")
 {
     // Load the DLL
@@ -30,6 +32,10 @@ LabJack::LabJack():
 // Configure the LabJack pins, clock and timers
 void LabJack::Configure(void)
 {
+    long lngGetNextIteration;
+    long lngIOType=0, lngChannel=0;
+    double dblValue=0;
+
     // Use the 48 MHz timer clock base with divider.
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0), __LINE__);
 
@@ -44,12 +50,27 @@ void LabJack::Configure(void)
 
     // Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0), __LINE__);
+    //  Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES16, 0, 0), __LINE__);
 
     //Set FIO5 to output-low.
     Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
 
     // Execute the requests.
     Call(m_pGoOne (lngHandle), __LINE__);
+
+    //Get all the results just to check for errors.
+    lngErrorcode = m_pGetFirstResult(lngHandle, &lngIOType, &lngChannel, &dblValue, 0, 0);
+    ErrorHandler(lngErrorcode, __LINE__, 0);
+    lngGetNextIteration=0;	//Used by the error handling function.
+    while(lngErrorcode < LJE_MIN_GROUP_ERROR)
+    {
+            lngErrorcode = m_pGetNextResult(lngHandle, &lngIOType, &lngChannel, &dblValue, 0, 0);
+            if(lngErrorcode != LJE_NO_MORE_DATA_AVAILABLE)
+            {
+                    ErrorHandler(lngErrorcode, __LINE__, lngGetNextIteration);
+            }
+            lngGetNextIteration++;
+    }
 
     status = "Configured";
 }
@@ -63,6 +84,9 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
     long lngIOType=0, lngChannel=0;
     double dblValue=0;
 
+    // Start with afresh
+    Call(m_pAddRequest(lngHandle, LJ_ioCLEAR_STREAM_CHANNELS, 0, 0, 0, 0), __LINE__);
+
     // Set the scan rate.
     Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_SCAN_FREQUENCY, scanRate_Hz, 0, 0), __LINE__);
 
@@ -71,10 +95,11 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
 
     // Configure reads to retrieve whatever data is available without waiting (wait mode LJ_swNONE).
     Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swNONE, 0, 0), __LINE__);
+    // Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swSLEEP, 0, 0), __LINE__);
 
-    //Add Timer0 200 LSW (low bit) to the scan
-    //Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 200, 0, 0, 0), __LINE__);
-    //above with reset...
+    // Add Timer0 200 LSW (low bit) to the scan
+    // No reset... Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 200, 0, 0, 0), __LINE__);
+    // With reset...
     Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 230, 0, 0, 0), __LINE__);
 
     //Add TC_Capture 224 MSW - (high bit for the above) to the scan
@@ -134,22 +159,22 @@ void LabJack::CreateTestPulse(int milliseconds)
     Sleep(milliseconds);
     //Set FIO5 to output-low.
     Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
+    pulseCount++;
 }
 
 void LabJack::StreamUpdate(void)
 {
-    //qDebug() << "Scan?";
+    // qDebug() << "Scan?";
+    // qDebug() << "Start:" << timer.elapsed();
     long k=0;
     double ms=0;
-    double numScans = scanRate_Hz * 2;  //2x the expected some number
-    double numScansRequested = numScans * 2;
-    double scanData[(int)numScansRequested];// = {0};  //Max buffer size (#channels*numScansRequested)
-    memset(scanData,0,numScansRequested*sizeof(double));
-//    int boardAux[length][length];
-//    memset( boardAux, 0, length*length*sizeof(int) );
-    double dblCommBacklog=0;
+    double numScans = scanRate_Hz * 2;                              // the expected number rate x 2 channels
+    double numScansRequested = numScans * 2 * 2;                    // we request twice as much as expected
+    double scanData[(int)numScansRequested];// = {0};               // Max buffer size (#channels*numScansRequested)
+    memset(scanData,0,numScansRequested*sizeof(double));            // dynamically create array size
+    for (int i=0; i < numScansRequested; i++) scanData[i] = 0.0;    // initialize double array to zero
 
-    //qDebug() << "Scan!";
+    double dblCommBacklog=0;
 
     //Make a long parameter which holds the address of the data array.  We do this
     //so the compiler does not generate a warning in the eGet call that retrieves
@@ -187,10 +212,13 @@ void LabJack::StreamUpdate(void)
         {
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
             totalTime_ms += ms;
-            qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            //qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
+            qDebug() << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            QApplication::beep();
         }
-         //qDebug() << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+
+
 
     }
     //Retrieve the current backlog.  The UD driver retrieves stream data from
@@ -198,7 +226,8 @@ void LabJack::StreamUpdate(void)
     //the driver might not be able to read the data as fast as the U3 is
     //acquiring it, and thus there will be data left over in the U3 buffer.
     Call(m_peGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_COMM, &dblCommBacklog, 0),__LINE__);
-    //qDebug() << "Comm Backlog = " << dblCommBacklog;
+    // qDebug() << "Comm Backlog = " << dblCommBacklog;
+       // qDebug() << "Stop:" << timer.elapsed();
 }
 
 void LabJack::StreamStop(void)

@@ -6,6 +6,7 @@
 #include <QElapsedTimer>
 #include <QtDebug>
 
+
 SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     QMainWindow(parent),
     // wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
@@ -32,20 +33,25 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     //update screen every x seconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(100);
+    timer->start(1000);
 
     //simulate pulses (requires FI05 to be connected to FIO4)
-    QTimer *pulseTimer = new QTimer();
+    pulseTimer = new QTimer();
     connect(pulseTimer, SIGNAL(timeout()), this, SLOT(slotPulseGen()));
-    pulseTimer->start(1000);
+    pulseTimer->setSingleShot(true);
+    pulseTimer->start(3000);
 
-    sim = 1000000; //used later for simulating input
+    ljthread = new LabjackThread(this);
+    ljthread->start();
+
+    sim = 250; //used later for simulating input
 }
 
 void SCIIMainWindow::slotUpdate(void)
 {
     //double period_us = vespaLabJack->GetTimer0Value();
     vespaLabJack->StreamUpdate();
+
     //overide value to simulate acceleration
 //    sim -= 1000;
 //    period_us = sim;
@@ -74,6 +80,10 @@ void SCIIMainWindow::slotUpdate(void)
 void SCIIMainWindow::slotPulseGen(void)
 {
     vespaLabJack->CreateTestPulse(1);
+    //sim = sim - 10;
+        //pulseTimer->setSingleShot(true);
+    pulseTimer->start(sim);
+
 }
 
 SCIIMainWindow::~SCIIMainWindow()

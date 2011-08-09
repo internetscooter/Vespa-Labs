@@ -34,6 +34,7 @@ private:
     long lngChannel;
     double scanRate_Hz; // for streaming speed at samples per second
     double totalTime_ms;
+    double pulseCount;
 
     //Define variables for the UD functions.
     tListAll m_pListAll;
