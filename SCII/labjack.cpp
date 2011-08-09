@@ -26,7 +26,8 @@ LabJack::LabJack():
     Call (m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
 
     status = "Ready for Configuration";
-    timer.start(); // kick off the timing - probably not required for stream mode
+    //timer.start(); // kick off the timing - probably not required for stream mode
+    // ConfigureStreamed();
 }
 
 // Configure the LabJack pins, clock and timers
@@ -137,6 +138,7 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
     Call(m_peGet (lngHandle, LJ_ioGET_TIMER, 0, &period_us, 0),__LINE__);
 
     status = "Streamed Configured";
+
 }
 
 // get latest info

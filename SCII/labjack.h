@@ -4,11 +4,13 @@
 #include <windows.h>
 #include <QString>
 #include <QElapsedTimer>
+#include <QTimer>
 #include "LabJackUD.h" // Warning the repository contains a copy and will become outdated!!!
 #include "LJUD_DynamicLinking.h"
 
 class LabJack
 {
+
 public:
     LabJack();
     void LoadLabJackUD (void);
@@ -16,7 +18,6 @@ public:
     void ConfigureStreamed(void);
     void StreamTest(void);
     double GetTimer0Value(void);
-    void StreamUpdate(void);
     void StreamStop(void);
     void TestExample (void);
     void CreateTestPulse(int milliseconds = 1);
@@ -35,7 +36,8 @@ private:
     double scanRate_Hz; // for streaming speed at samples per second
     double totalTime_ms;
     double pulseCount;
-
+    QTimer *pulseTimer;
+    QTimer *readTimer;
     //Define variables for the UD functions.
     tListAll m_pListAll;
     tOpenLabJack m_pOpenLabJack;
@@ -61,6 +63,10 @@ private:
     tErrorToString m_pErrorToString;
     tGetDriverVersion m_pGetDriverVersion;
     tTCVoltsToTemp m_pTCVoltsToTemp;
+
+public slots:
+    virtual void StreamUpdate(void);	// updates things screen with fresh information
+    //virtual void slotPulseGen();  // generates a pulse to simulate a reed switch trigger
 };
 
 #endif // LABJACK_H

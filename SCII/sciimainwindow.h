@@ -4,8 +4,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QFile>
-#include "labjack.h"
-#include <speed.h>
+
 #include "labjackthread.h"
 
 namespace Ui {
@@ -22,12 +21,9 @@ public:
 
 private:
     Ui::SCIIMainWindow *ui;
-    LabJack *vespaLabJack;
-    QFile *logfile;
-    Speed wheelSpeed; // not the best place to have this - later make Vespa class
     double sim;
     QTimer *pulseTimer;
-    LabjackThread *ljthread;
+    LabjackThread *labjackThread;
 
 public slots:
 
