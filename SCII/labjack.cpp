@@ -223,12 +223,15 @@ void LabJack::StreamUpdate(void)
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
             localWheelspeed.set_period_s(ms/1000);
             totalTime_ms += ms;
-            qDebug() << totalTime_ms/1000
+            // qDebug()
+            out
+                    << totalTime_ms/1000
                      << "," << timer.elapsed()/1000
                      << "," << (totalTime_ms/1000) - (timer.elapsed()/1000)
                      << "," << localWheelspeed.kmph()
                      << "," << localWheelspeed.rpm()
-                     << "," << localWheelspeed.hp();
+                     << "," << localWheelspeed.hp()
+                     << "\n";
 
             //qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
