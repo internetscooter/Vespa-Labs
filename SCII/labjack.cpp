@@ -7,7 +7,7 @@
 
 LabJack::LabJack():
     lngHandle(0),
-    scanRate_Hz(50),
+    scanRate_Hz(100),
     totalTime_ms(0),
     pulseCount(0),
     status("Initialising...")
@@ -171,10 +171,11 @@ void LabJack::StreamUpdate(void)
     long k=0;
     double ms=0;
     double numScans = scanRate_Hz * 2;                              // the expected number rate x 2 channels
-    double numScansRequested = numScans * 2 * 2;                    // we request twice as much as expected
+    double numScansRequested = numScans * 2;                    // we request twice as much as expected
     double scanData[(int)numScansRequested];// = {0};               // Max buffer size (#channels*numScansRequested)
     memset(scanData,0,numScansRequested*sizeof(double));            // dynamically create array size
     for (int i=0; i < numScansRequested; i++) scanData[i] = 0.0;    // initialize double array to zero
+    // double scanData[4000] = {0};
 
     double dblCommBacklog=0;
 
@@ -190,7 +191,7 @@ void LabJack::StreamUpdate(void)
     //init array so we can easily tell if it has changed
     for(k=0;k<numScansRequested;k++)
     {
-            scanData[k] = 99999.0;
+            scanData[k] = 0.0;
     }
 
     //Read the data.  We will request twice the number we expect, to
@@ -206,20 +207,23 @@ void LabJack::StreamUpdate(void)
     //qDebug() << "First scan = " << adblData[0] << "," << adblData[1] << "," << adblData[2] << "," << adblData[3];
 
     QDateTime now = QDateTime::currentDateTime();
-
-    for(k=0;k<numScansRequested;k+=2)
+    int x = 0;
+    for(k=0;k<numScans;k+=2)
     {
             //adblData[k] = 99999.0;
         if (scanData[k] > 0)
         {
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
+
             totalTime_ms += ms;
             //qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
-            qDebug() << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
-            QApplication::beep();
+            qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            //QApplication::beep();
+            x++;
         }
 
+    //qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
 
 
     }
