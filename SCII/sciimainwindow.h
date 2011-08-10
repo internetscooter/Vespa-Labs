@@ -6,6 +6,7 @@
 #include <QFile>
 
 #include "labjack.h"
+#include "speed.h"
 
 namespace Ui {
     class SCIIMainWindow;
@@ -24,6 +25,7 @@ private:
     double sim;
     QTimer *pulseTimer;
     LabJack *vespaLabJack;
+    Speed wheelSpeed; // decouple later
 
 public slots:
 

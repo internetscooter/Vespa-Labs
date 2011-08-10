@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <qapplication.h>
 
+
 LabJack::LabJack():
     lngHandle(0),
     scanRate_Hz(100),
@@ -26,8 +27,12 @@ LabJack::LabJack():
     Call (m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
 
     status = "Ready for Configuration";
-    //timer.start(); // kick off the timing - probably not required for stream mode
-    // ConfigureStreamed();
+    timer.start(); // kick off the timing - probably not required for stream mode
+
+    // Quick and dirty Temp file logging to capture some data
+    // no error checking! Comment out when not being used
+     logfile = new QFile( "vespa.log" );
+     logfile->open(QIODevice::WriteOnly | QIODevice::Text);
 }
 
 // Configure the LabJack pins, clock and timers
@@ -207,6 +212,7 @@ void LabJack::StreamUpdate(void)
     //qDebug() << "First scan = " << adblData[0] << "," << adblData[1] << "," << adblData[2] << "," << adblData[3];
 
     QDateTime now = QDateTime::currentDateTime();
+    QTextStream out(logfile);
     int x = 0;
     for(k=0;k<numScans;k+=2)
     {
@@ -218,7 +224,8 @@ void LabJack::StreamUpdate(void)
             totalTime_ms += ms;
             //qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
-            qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            // qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
+            out << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k] << "\n";
             //QApplication::beep();
             x++;
         }

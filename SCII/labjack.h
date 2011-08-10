@@ -5,6 +5,9 @@
 #include <QString>
 #include <QElapsedTimer>
 #include <QTimer>
+#include <QFile>
+#include <QTextStream>
+#include <iostream>
 #include "LabJackUD.h" // Warning the repository contains a copy and will become outdated!!!
 #include "LJUD_DynamicLinking.h"
 
@@ -38,6 +41,9 @@ private:
     double pulseCount;
     QTimer *pulseTimer;
     QTimer *readTimer;
+    QFile *logfile;
+    QTextStream out;
+
     //Define variables for the UD functions.
     tListAll m_pListAll;
     tOpenLabJack m_pOpenLabJack;

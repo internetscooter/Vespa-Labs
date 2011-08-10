@@ -11,7 +11,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     QMainWindow(parent),
     // wheelSpeed(0,1.345), // Diameter of a Sava MC18 10inch
     // wheelSpeed(0,1.314), // Heinadau racer 10inch
-    // wheelSpeed(0,1.360), // Sava MC31 10inch
+    wheelSpeed(0,1.360), // Sava MC31 10inch
     ui(new Ui::SCIIMainWindow)
 {
     ui->setupUi(this);
@@ -27,11 +27,10 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     // logfile = new QFile( "vespa.log" );
     // logfile->open(QIODevice::WriteOnly | QIODevice::Text);
 
-
     //update screen every x seconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(1000);
+    timer->start(100);
 
     //simulate pulses (requires FI05 to be connected to FIO4)
     pulseTimer = new QTimer();
