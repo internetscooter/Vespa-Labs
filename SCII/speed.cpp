@@ -101,10 +101,10 @@ void Speed::set_ms(double ms) // set metres per second
         << averageSpeed_ms << ","
         << power_w << "\n";
 
-    qDebug() << "last time: " << lastMeasurementTime_ms;
-    qDebug() << "this time: " << currentMeasurementTime_ms;
-    qDebug() << "ms difference: " << difference;
-    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
+//    qDebug() << "last time: " << lastMeasurementTime_ms;
+//    qDebug() << "this time: " << currentMeasurementTime_ms;
+//    qDebug() << "ms difference: " << difference;
+//    qDebug() << "time diff: " << (currentMeasurementTime_ms - lastMeasurementTime_ms) / 1000;
 }
 
 

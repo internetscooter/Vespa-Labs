@@ -13,13 +13,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         sciimainwindow.cpp \
     labjack.cpp \
-    speed.cpp
+    speed.cpp \
+    ljstream.cpp
 
 HEADERS  += sciimainwindow.h \
     labjack.h \
     LJUD_DynamicLinking.h \
     LabJackUD.h \
-    speed.h
+    speed.h \
+    ljstream.h
 
 FORMS    += sciimainwindow.ui
 

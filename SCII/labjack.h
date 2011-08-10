@@ -10,6 +10,7 @@
 #include <iostream>
 #include "LabJackUD.h" // Warning the repository contains a copy and will become outdated!!!
 #include "LJUD_DynamicLinking.h"
+#include "speed.h"
 
 class LabJack
 {
@@ -26,6 +27,8 @@ public:
     void CreateTestPulse(int milliseconds = 1);
     QString status;
     QElapsedTimer timer; // use the system clock for time measurements
+    Speed localWheelspeed;
+
 private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);
     void Call (LJ_ERROR lngErrorcode, long lngLineNumber); //same as above for inline error checking of calls

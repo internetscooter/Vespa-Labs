@@ -11,6 +11,7 @@ LabJack::LabJack():
     scanRate_Hz(100),
     totalTime_ms(0),
     pulseCount(0),
+    localWheelspeed(0,1.360), // Sava MC31 10inch
     status("Initialising...")
 {
     // Load the DLL
@@ -213,21 +214,26 @@ void LabJack::StreamUpdate(void)
 
     QDateTime now = QDateTime::currentDateTime();
     QTextStream out(logfile);
-    int x = 0;
+
     for(k=0;k<numScans;k+=2)
     {
             //adblData[k] = 99999.0;
         if (scanData[k] > 0)
         {
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
-
+            localWheelspeed.set_period_s(ms/1000);
             totalTime_ms += ms;
+            qDebug() << totalTime_ms/1000
+                     << "," << timer.elapsed()/1000
+                     << "," << (totalTime_ms/1000) - (timer.elapsed()/1000)
+                     << "," << localWheelspeed.kmph()
+                     << "," << localWheelspeed.rpm()
+                     << "," << localWheelspeed.hp();
+
             //qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
             // qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
-            out << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k] << "\n";
-            //QApplication::beep();
-            x++;
+            //out << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k] << "\n";
         }
 
     //qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
