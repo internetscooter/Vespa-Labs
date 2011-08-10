@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QFile>
 
-#include "labjackthread.h"
+#include "labjack.h"
 
 namespace Ui {
     class SCIIMainWindow;
@@ -23,7 +23,7 @@ private:
     Ui::SCIIMainWindow *ui;
     double sim;
     QTimer *pulseTimer;
-    LabjackThread *labjackThread;
+    LabJack *vespaLabJack;
 
 public slots:
 

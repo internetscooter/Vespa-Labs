@@ -17,10 +17,10 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     ui->setupUi(this);
     //ui->SVGButton->show();
     statusBar()->showMessage("Locating Vespa LabJack...");
-    labjackThread = new LabjackThread();
-    statusBar()->showMessage("Vespa LabJack: " + labjackThread->status);
-    //vespaLabJack->ConfigureStreamed();
-    statusBar()->showMessage("Vespa LabJack: " + labjackThread->status);
+    vespaLabJack = new LabJack();
+    statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
+    vespaLabJack->ConfigureStreamed();
+    statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
 
     // Quick and dirty Temp file logging to capture some data
     // no error checking! Comment out when not being used
@@ -29,17 +29,17 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
 
 
     //update screen every x seconds
-//    QTimer *timer = new QTimer();
-//    connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-//    timer->start(1000);
+    QTimer *timer = new QTimer();
+    connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
+    timer->start(1000);
 
     //simulate pulses (requires FI05 to be connected to FIO4)
-//    pulseTimer = new QTimer();
-//    connect(pulseTimer, SIGNAL(timeout()), this, SLOT(slotPulseGen()));
-//    pulseTimer->setSingleShot(true);
-//    pulseTimer->start(3000);
+    pulseTimer = new QTimer();
+    connect(pulseTimer, SIGNAL(timeout()), this, SLOT(slotPulseGen()));
+    //pulseTimer->setSingleShot(true);
+    pulseTimer->start(250);
 
-    labjackThread->start();
+    //labjackThread->start();
 
     sim = 250; //used later for simulating input
 }
@@ -47,7 +47,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
 void SCIIMainWindow::slotUpdate(void)
 {
     //double period_us = vespaLabJack->GetTimer0Value();
-    // vespaLabJack->StreamUpdate();
+     vespaLabJack->StreamUpdate();
 
     //overide value to simulate acceleration
 //    sim -= 1000;
@@ -76,7 +76,7 @@ void SCIIMainWindow::slotUpdate(void)
 
 void SCIIMainWindow::slotPulseGen(void)
 {
-    // vespaLabJack->CreateTestPulse(1);
+     vespaLabJack->CreateTestPulse(1);
     //sim = sim - 10;
         //pulseTimer->setSingleShot(true);
     //pulseTimer->start(sim);
