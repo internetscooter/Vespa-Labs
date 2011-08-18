@@ -4,6 +4,9 @@
 #include <QtDebug>
 #include <QDateTime>
 #include <qapplication.h>
+#include <QLibrary>
+#include <QWaitCondition>
+
 
 
 LabJack::LabJack():
@@ -21,8 +24,9 @@ LabJack::LabJack():
     Call (m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
 
     // Do a reset (just to be safe) and wait before trying anything else
-    m_pResetLabJack(lngHandle);
-    Sleep(8000);
+    // m_pResetLabJack(lngHandle);
+
+
 
     // Reset pin assignments are in the factory default condition.
     Call (m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
@@ -164,7 +168,7 @@ void LabJack::CreateTestPulse(int milliseconds)
     //Set FIO5 to output-high.
     //AddRequest (lngHandle, LJ_ioPUT_DIGITAL_BIT, 3, 1, 0, 0);
     Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 1, 0),__LINE__);
-    Sleep(milliseconds);
+    //Sleep(milliseconds);
     //Set FIO5 to output-low.
     Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
     pulseCount++;
@@ -259,38 +263,72 @@ void LabJack::StreamStop(void)
 void LabJack::LoadLabJackUD (void)
 {
     //Now try and load the DLL.
-    if (hDLLInstance = LoadLibrary(L"labjackud.dll"))
+    QLibrary ljsharedlib("labjackud");
+    ljsharedlib.load();
+    //If successfully loaded, get the address of the functions.
+    if (ljsharedlib.isLoaded())
     {
-        //If successfully loaded, get the address of the functions.
-        m_pListAll = (tListAll)::GetProcAddress(hDLLInstance,"ListAll");
-        m_pOpenLabJack = (tOpenLabJack)::GetProcAddress(hDLLInstance,"OpenLabJack");
-        m_pAddRequest = (tAddRequest)::GetProcAddress(hDLLInstance,"AddRequest");
-        m_pGo = (tGo)::GetProcAddress(hDLLInstance,"Go");
-        m_pGoOne = (tGoOne)::GetProcAddress(hDLLInstance,"GoOne");
-        m_peGet = (teGet)::GetProcAddress(hDLLInstance,"eGet");
-        m_pePut = (tePut)::GetProcAddress(hDLLInstance,"ePut");
-        m_pGetResult = (tGetResult)::GetProcAddress(hDLLInstance,"GetResult");
-        m_pGetFirstResult = (tGetFirstResult)::GetProcAddress(hDLLInstance,"GetFirstResult");
-        m_pGetNextResult = (tGetNextResult)::GetProcAddress(hDLLInstance,"GetNextResult");
-        m_peAIN = (teAIN)::GetProcAddress(hDLLInstance,"eAIN");
-        m_peDAC = (teDAC)::GetProcAddress(hDLLInstance,"eDAC");
-        m_peDI = (teDI)::GetProcAddress(hDLLInstance,"eDI");
-        m_peDO = (teDO)::GetProcAddress(hDLLInstance,"eDO");
-        m_peAddGoGet = (teAddGoGet)::GetProcAddress(hDLLInstance,"eAddGoGet");
-        m_peTCConfig = (teTCConfig)::GetProcAddress(hDLLInstance,"eTCConfig");
-        m_peTCValues = (teTCValues)::GetProcAddress(hDLLInstance,"eTCValues");
-        m_pResetLabJack = (tResetLabJack)::GetProcAddress(hDLLInstance,"ResetLabJack");
-        m_pDoubleToStringAddress = (tDoubleToStringAddress)::GetProcAddress(hDLLInstance,"DoubleToStringAddress");
-        m_pStringToDoubleAddress = (tStringToDoubleAddress)::GetProcAddress(hDLLInstance,"StringToDoubleAddress");
-        m_pStringToConstant = (tStringToConstant)::GetProcAddress(hDLLInstance,"StringToConstant");
-        m_pErrorToString = (tErrorToString)::GetProcAddress(hDLLInstance,"ErrorToString");
-        m_pGetDriverVersion = (tGetDriverVersion)::GetProcAddress(hDLLInstance,"GetDriverVersion");
-        m_pTCVoltsToTemp = (tTCVoltsToTemp)::GetProcAddress(hDLLInstance,"TCVoltsToTemp");
+        m_pListAll = (tListAll)ljsharedlib.resolve("ListAll");
+        m_pOpenLabJack = (tOpenLabJack)ljsharedlib.resolve("OpenLabJack");
+        m_pAddRequest = (tAddRequest)ljsharedlib.resolve("AddRequest");
+        m_pGo = (tGo)ljsharedlib.resolve("Go");
+        m_pGoOne = (tGoOne)ljsharedlib.resolve("GoOne");
+        m_peGet = (teGet)ljsharedlib.resolve("eGet");
+        m_pePut = (tePut)ljsharedlib.resolve("ePut");
+        m_pGetResult = (tGetResult)ljsharedlib.resolve("GetResult");
+        m_pGetFirstResult = (tGetFirstResult)ljsharedlib.resolve("GetFirstResult");
+        m_pGetNextResult = (tGetNextResult)ljsharedlib.resolve("GetNextResult");
+        m_peAIN = (teAIN)ljsharedlib.resolve("eAIN");
+        m_peDAC = (teDAC)ljsharedlib.resolve("eDAC");
+        m_peDI = (teDI)ljsharedlib.resolve("eDI");
+        m_peDO = (teDO)ljsharedlib.resolve("eDO");
+        m_peAddGoGet = (teAddGoGet)ljsharedlib.resolve("eAddGoGet");
+        m_peTCConfig = (teTCConfig)ljsharedlib.resolve("eTCConfig");
+        m_peTCValues = (teTCValues)ljsharedlib.resolve("eTCValues");
+        m_pResetLabJack = (tResetLabJack)ljsharedlib.resolve("ResetLabJack");
+        m_pDoubleToStringAddress = (tDoubleToStringAddress)ljsharedlib.resolve("DoubleToStringAddress");
+        m_pStringToDoubleAddress = (tStringToDoubleAddress)ljsharedlib.resolve("StringToDoubleAddress");
+        m_pStringToConstant = (tStringToConstant)ljsharedlib.resolve("StringToConstant");
+        m_pErrorToString = (tErrorToString)ljsharedlib.resolve("ErrorToString");
+        m_pGetDriverVersion = (tGetDriverVersion)ljsharedlib.resolve("GetDriverVersion");
+        m_pTCVoltsToTemp = (tTCVoltsToTemp)ljsharedlib.resolve("TCVoltsToTemp");
     }
+
+    // windows specific to be removed...
+//    if (hDLLInstance = LoadLibrary(L"labjackud.dll"))
+//    {
+//        //If successfully loaded, get the address of the functions.
+//        m_pListAll = (tListAll)::GetProcAddress(hDLLInstance,"ListAll");
+//        m_pOpenLabJack = (tOpenLabJack)::GetProcAddress(hDLLInstance,"OpenLabJack");
+//        m_pAddRequest = (tAddRequest)::GetProcAddress(hDLLInstance,"AddRequest");
+//        m_pGo = (tGo)::GetProcAddress(hDLLInstance,"Go");
+//        m_pGoOne = (tGoOne)::GetProcAddress(hDLLInstance,"GoOne");
+//        m_peGet = (teGet)::GetProcAddress(hDLLInstance,"eGet");
+//        m_pePut = (tePut)::GetProcAddress(hDLLInstance,"ePut");
+//        m_pGetResult = (tGetResult)::GetProcAddress(hDLLInstance,"GetResult");
+//        m_pGetFirstResult = (tGetFirstResult)::GetProcAddress(hDLLInstance,"GetFirstResult");
+//        m_pGetNextResult = (tGetNextResult)::GetProcAddress(hDLLInstance,"GetNextResult");
+//        m_peAIN = (teAIN)::GetProcAddress(hDLLInstance,"eAIN");
+//        m_peDAC = (teDAC)::GetProcAddress(hDLLInstance,"eDAC");
+//        m_peDI = (teDI)::GetProcAddress(hDLLInstance,"eDI");
+//        m_peDO = (teDO)::GetProcAddress(hDLLInstance,"eDO");
+//        m_peAddGoGet = (teAddGoGet)::GetProcAddress(hDLLInstance,"eAddGoGet");
+//        m_peTCConfig = (teTCConfig)::GetProcAddress(hDLLInstance,"eTCConfig");
+//        m_peTCValues = (teTCValues)::GetProcAddress(hDLLInstance,"eTCValues");
+//        m_pResetLabJack = (tResetLabJack)::GetProcAddress(hDLLInstance,"ResetLabJack");
+//        m_pDoubleToStringAddress = (tDoubleToStringAddress)::GetProcAddress(hDLLInstance,"DoubleToStringAddress");
+//        m_pStringToDoubleAddress = (tStringToDoubleAddress)::GetProcAddress(hDLLInstance,"StringToDoubleAddress");
+//        m_pStringToConstant = (tStringToConstant)::GetProcAddress(hDLLInstance,"StringToConstant");
+//        m_pErrorToString = (tErrorToString)::GetProcAddress(hDLLInstance,"ErrorToString");
+//        m_pGetDriverVersion = (tGetDriverVersion)::GetProcAddress(hDLLInstance,"GetDriverVersion");
+//        m_pTCVoltsToTemp = (tTCVoltsToTemp)::GetProcAddress(hDLLInstance,"TCVoltsToTemp");
+//    }
     else
     {
-        printf("\nFailed to load DLL\n");
-        getchar();
+//        printf("\nFailed to load DLL\n");
+//        getchar();
+        qDebug() << "Failed to load DLL";
+        qDebug() << ljsharedlib.errorString();
         exit(0);
     }
     //Read the UD version.
@@ -347,143 +385,6 @@ void LabJack::ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngI
 
 //********** junk code below here - just for notes **********
 
-void LabJack::StreamTest(void) //remove later - just for reference
-{
-    //LJ_ERROR lngErrorcode;
-    //LJ_HANDLE lngHandle=0;
-    long lngGetNextIteration;
-    long i=0,k=0;
-    long lngIOType=0, lngChannel=0;
-    double dblValue=0, dblCommBacklog=0;
-    double scanRate = 1000;
-    long delayms = 1000;
-    double numScans = 2000;  //2x the expected # of scans (2*scanRate*delayms/1000)
-    double numScansRequested;
-    double adblData[4000] = {0};  //Max buffer size (#channels*numScansRequested)
-
-
-    //Make a long parameter which holds the address of the data array.  We do this
-    //so the compiler does not generate a warning in the eGet call that retrieves
-    //stream data.  Note that the x1 parameter  in eGet (and AddRequest) is fairly
-    //generic, in that sometimes it could just be a write parameter, and sometimes
-    //it has the address of an array.  Since x1 is not declared as a pointer, the
-    //compiler will complain if you just pass the array pointer without casting
-    //it to a long as follows.
-    long padblData = (long)&adblData[0];
-
-    //Read and display the UD version.
-    dblValue = m_pGetDriverVersion();
-    printf("UD Driver Version = %.3f\n\n",dblValue);
-
-    //Open the first found LabJack U3.
-    Call(m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle),__LINE__);
-
-    //Read and display the hardware version of this U3.
-    Call(m_peGet (lngHandle, LJ_ioGET_CONFIG, LJ_chHARDWARE_VERSION, &dblValue, 0),__LINE__);
-    printf("U3 Hardware Version = %.3f\n\n",dblValue);
-
-    //Read and display the firmware version of this U3.
-    Call(m_peGet (lngHandle, LJ_ioGET_CONFIG, LJ_chFIRMWARE_VERSION, &dblValue, 0),__LINE__);
-    printf("U3 Firmware Version = %.3f\n\n",dblValue);
-
-    //Start by using the pin_configuration_reset IOType so that all
-    //pin assignments are in the factory default condition.
-    Call(m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
-
-    //Configure FIO0 and FIO1 as analog, all else as digital.  That means we
-    //will start from channel 0 and update all 16 flexible bits.  We will
-    //pass a value of b0000000000000011 or d3.
-    Call(m_pePut (lngHandle, LJ_ioPUT_ANALOG_ENABLE_PORT, 0, 3, 16),__LINE__);
-
-    //Configure the stream:
-    //Set the scan rate.
-    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_SCAN_FREQUENCY, scanRate, 0, 0),__LINE__);
-
-    //Give the driver a 5 second buffer (scanRate * 2 channels * 5 seconds).
-    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_BUFFER_SIZE, scanRate*2*5, 0, 0),__LINE__);
-
-    //Configure reads to retrieve whatever data is available without waiting (wait mode LJ_swNONE).
-        //See comments below to change this program to use LJ_swSLEEP mode.
-    Call(m_pAddRequest(lngHandle, LJ_ioPUT_CONFIG, LJ_chSTREAM_WAIT_MODE, LJ_swNONE, 0, 0),__LINE__);
-
-    //Define the scan list as AIN0 then AIN1.
-    Call(m_pAddRequest(lngHandle, LJ_ioCLEAR_STREAM_CHANNELS, 0, 0, 0, 0),__LINE__);
-    Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 0, 0, 0, 0),__LINE__); // first method for single ended reading - AIN0
-    Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL_DIFF, 1, 0, 32, 0),__LINE__); // second method for single ended reading - AIN1
-
-    //Execute the list of requests.
-    Call(m_pGoOne(lngHandle),__LINE__);
-
-    //Get all the results just to check for errors.
-    lngErrorcode = m_pGetFirstResult(lngHandle, &lngIOType, &lngChannel, &dblValue, 0, 0);
-    ErrorHandler(lngErrorcode, __LINE__, 0);
-    lngGetNextIteration=0;	//Used by the error handling function.
-    while(lngErrorcode < LJE_MIN_GROUP_ERROR)
-    {
-            lngErrorcode = m_pGetNextResult(lngHandle, &lngIOType, &lngChannel, &dblValue, 0, 0);
-            if(lngErrorcode != LJE_NO_MORE_DATA_AVAILABLE)
-            {
-                    ErrorHandler(lngErrorcode, __LINE__, lngGetNextIteration);
-            }
-
-            lngGetNextIteration++;
-    }
-
-    //Start the stream.
-    Call(m_peGet(lngHandle, LJ_ioSTART_STREAM, 0, &dblValue, 0),__LINE__);
-
-    //The actual scan rate is dependent on how the desired scan rate divides into
-    //the LabJack clock.  The actual scan rate is returned in the value parameter
-    //from the start stream command.
-    printf("Actual Scan Rate = %.3f\n",dblValue);
-    printf("Actual Sample Rate = %.3f\n",2*dblValue);
-
-
-    //Read data
-    while(1)	//Loop will run until any key is hit
-    {
-            //Since we are using wait mode LJ_swNONE, we will wait a little, then
-            //read however much data is available.  Thus this delay will control how
-            //fast the program loops and how much data is read each loop.  An
-            //alternative common method is to use wait mode LJ_swSLEEP where the
-            //stream read waits for a certain number of scans.  In such a case
-            //you would not have a delay here, since the stream read will actually
-            //control how fast the program loops.
-            //
-            //To change this program to use sleep mode,
-            //	-change numScans to the actual number of scans desired per read,
-            //	-change wait mode addrequest value to LJ_swSLEEP,
-            //	-comment out the following Sleep command.
-
-            Sleep(delayms);	//Remove if using LJ_swSLEEP.
-
-            //init array so we can easily tell if it has changed
-            for(k=0;k<numScans*2;k++)
-            {
-                    adblData[k] = 99999.0;
-            }
-
-            //Read the data.  We will request twice the number we expect, to
-            //make sure we get everything that is available.
-            //Note that the array we pass must be sized to hold enough SAMPLES, and
-            //the Value we pass specifies the number of SCANS to read.
-            numScansRequested=numScans;
-            Call(m_peGet(lngHandle, LJ_ioGET_STREAM_DATA, LJ_chALL_CHANNELS, &numScansRequested, padblData),__LINE__);
-            //The displays the number of scans that were actually read.
-            printf("\nIteration # %d\n",i);
-            printf("Number read = %.0f\n",numScansRequested);
-            //This displays just the first scan.
-            printf("First scan = %.3f, %.3f\n",adblData[0],adblData[1]);
-            ErrorHandler(lngErrorcode, __LINE__, 0);
-            //Retrieve the current backlog.  The UD driver retrieves stream data from
-            //the U3 in the background, but if the computer is too slow for some reason
-            //the driver might not be able to read the data as fast as the U3 is
-            //acquiring it, and thus there will be data left over in the U3 buffer.
-            Call(m_peGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_COMM, &dblCommBacklog, 0),__LINE__);
-            printf("Comm Backlog = %.0f\n",dblCommBacklog);
-            i++;
-    }
-}
 
 // from previous code (useful examples) - remove later
 void LabJack::TestExample(void)

@@ -1,7 +1,6 @@
 #ifndef LABJACK_H
 #define LABJACK_H
 #include <stdio.h>
-#include <windows.h>
 #include <QString>
 #include <QElapsedTimer>
 #include <QTimer>
@@ -33,7 +32,7 @@ private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);
     void Call (LJ_ERROR lngErrorcode, long lngLineNumber); //same as above for inline error checking of calls
     //Define a variable to hold a handle to the loaded DLL.
-    HINSTANCE hDLLInstance;
+    //HINSTANCE hDLLInstance;
     double dblDriverVersion;
     LJ_ERROR lngErrorcode;
     LJ_HANDLE lngHandle;

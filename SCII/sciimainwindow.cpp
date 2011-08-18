@@ -33,10 +33,10 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     timer->start(100);
 
     //simulate pulses (requires FI05 to be connected to FIO4)
-    pulseTimer = new QTimer();
-    connect(pulseTimer, SIGNAL(timeout()), this, SLOT(slotPulseGen()));
-    //pulseTimer->setSingleShot(true);
-    pulseTimer->start(250);
+//    pulseTimer = new QTimer();
+//    connect(pulseTimer, SIGNAL(timeout()), this, SLOT(slotPulseGen()));
+//    //pulseTimer->setSingleShot(true);
+//    pulseTimer->start(250);
 
     //labjackThread->start();
 
