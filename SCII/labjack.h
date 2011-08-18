@@ -7,7 +7,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <iostream>
-#include "LabJackUD.h" // Warning the repository contains a copy and will become outdated!!!
+#include "LabJackUD.h"
 #include "LJUD_DynamicLinking.h"
 #include "speed.h"
 
@@ -20,9 +20,7 @@ public:
     void Configure(void);
     void ConfigureStreamed(void);
     void StreamTest(void);
-    double GetTimer0Value(void);
     void StreamStop(void);
-    void TestExample (void);
     void CreateTestPulse(int milliseconds = 1);
     QString status;
     QElapsedTimer timer; // use the system clock for time measurements

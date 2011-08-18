@@ -84,6 +84,7 @@ void SCIIMainWindow::slotPulseGen(void)
 
 SCIIMainWindow::~SCIIMainWindow()
 {
+    vespaLabJack->StreamStop();
     delete ui;
 }
 
