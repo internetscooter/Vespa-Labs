@@ -33,7 +33,7 @@ LabJack::LabJack():
      logfile->open(QIODevice::WriteOnly | QIODevice::Text);
 }
 
-// Configure the LabJack pins, clock and timers
+// Configure the LabJack pins, clock, timers and stream
 void LabJack::Configure(void)
 {
     long lngGetNextIteration;
@@ -77,16 +77,8 @@ void LabJack::Configure(void)
     }
 
     status = "Configured";
-}
 
-// trying out streamed mode for faster reads and more accuracy
-void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "the" way rather than "a" way
-{
-    Configure(); //set up the inputs and clock
-
-    long lngGetNextIteration;
-    long lngIOType=0, lngChannel=0;
-    double dblValue=0;
+    // Streaming Configuration...
 
     // Start with afresh
     Call(m_pAddRequest(lngHandle, LJ_ioCLEAR_STREAM_CHANNELS, 0, 0, 0, 0), __LINE__);
@@ -132,8 +124,8 @@ void LabJack::ConfigureStreamed(void) // move to Configure() when this becomes "
     //The actual scan rate is dependent on how the desired scan rate divides into
     //the LabJack clock.  The actual scan rate is returned in the value parameter
     //from the start stream command.
-    qDebug() << "Actual Scan Rate = " << dblValue;
-    qDebug() << "Actual Sample Rate = " << 2*dblValue;
+//    qDebug() << "Actual Scan Rate = " << dblValue;
+//    qDebug() << "Actual Sample Rate = " << 2*dblValue;
 
     double period_us;
 

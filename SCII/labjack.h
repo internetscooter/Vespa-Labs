@@ -18,7 +18,6 @@ public:
     LabJack();
     void LoadLabJackUD (void);
     void Configure(void);
-    void ConfigureStreamed(void);
     void StreamTest(void);
     void StreamStop(void);
     void CreateTestPulse(int milliseconds = 1);
