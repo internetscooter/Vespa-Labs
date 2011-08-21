@@ -46,7 +46,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
 void SCIIMainWindow::slotUpdate(void)
 {
     //double period_us = vespaLabJack->GetTimer0Value();
-     vespaLabJack->StreamUpdate();
+    vespaLabJack->StreamUpdate();
 
     //overide value to simulate acceleration
 //    sim -= 1000;
@@ -67,7 +67,7 @@ void SCIIMainWindow::slotUpdate(void)
 //            << "," << wheelSpeed.mss()
 //            << "," << wheelSpeed.hp() << "\n";
 
-    //statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
+    statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
 //    statusBar()->showMessage("Vespa LabJack: " + QString("%1").arg(wheelSpeed.kmph()*1000));
 //    ui->lcdNumber->display(QString("%1").arg(wheelSpeed.kmph(),0,'f',2));
 //    ui->svgSpeedometer->setValue(wheelSpeed.kmph()*1000);

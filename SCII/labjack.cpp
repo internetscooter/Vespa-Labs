@@ -53,8 +53,10 @@ void LabJack::Configure(void)
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 1, 0, 0), __LINE__);
 
     // Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
-    Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0), __LINE__);
-    //  Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES16, 0, 0), __LINE__);
+    // Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0), __LINE__);
+    // debounced circuit gives a really good falling edge so we will use that
+    // Enable timer 32-bit falling to falling edge measurement
+    Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmFALLINGEDGES32, 0, 0), __LINE__);
 
     //Set FIO5 to output-low.
     Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
@@ -202,20 +204,22 @@ void LabJack::StreamUpdate(void)
             totalTime_ms += ms;
             // qDebug()
             out
-                    << totalTime_ms/1000
-                     << "," << timer.elapsed()/1000
-                     << "," << (totalTime_ms/1000) - (timer.elapsed()/1000)
-                     << "," << localWheelspeed.kmph()
-                     << "," << localWheelspeed.rpm()
-                     << "," << localWheelspeed.hp()
-                     << "\n";
+                << scanData[k+1]    //MSW
+                << "," << scanData[k]    //LSW
+                << "," << totalTime_ms/1000
+                << "," << timer.elapsed()/1000
+                << "," << (totalTime_ms/1000) - (timer.elapsed()/1000)
+                << "," << localWheelspeed.kmph()
+                << "," << localWheelspeed.rpm()
+                << "," << localWheelspeed.hp()
+                << "\n";
 
             //qDebug() << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //qDebug() << "V: " << scanData[k+1] << "," << scanData[k];
             // qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
             //out << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k] << "\n";
         }
-
+        status = QString("%1 km/h").arg(localWheelspeed.kmph(),0,'f',2);
     //qDebug() << numScansRequested << "," << x << "," << pulseCount << "," << now.toString()<< "," << totalTime_ms << "," << ms << "," << scanData[k+1] << "," << scanData[k];
 
 
