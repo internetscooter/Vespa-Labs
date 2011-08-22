@@ -9,8 +9,9 @@
 
 LabJack::LabJack():
     lngHandle(0),
-    scanRate_Hz(100),
+    scanRate_Hz(1000),
     totalTime_ms(0),
+    scanNumber(0),
     pulseCount(0),
     localWheelspeed(0,1.360), // Sava MC31 10inch
     status("Initialising...")
@@ -204,7 +205,9 @@ void LabJack::StreamUpdate(void)
             totalTime_ms += ms;
             // qDebug()
             out
-                << scanData[k+1]    //MSW
+                << "," << dblCommBacklog // should always be zero
+                << "," << scanNumber // we are tracking each scan by number
+                << "," << scanData[k+1]    //MSW
                 << "," << scanData[k]    //LSW
                 << "," << totalTime_ms/1000
                 << "," << timer.elapsed()/1000
@@ -228,9 +231,11 @@ void LabJack::StreamUpdate(void)
     //the U3 in the background, but if the computer is too slow for some reason
     //the driver might not be able to read the data as fast as the U3 is
     //acquiring it, and thus there will be data left over in the U3 buffer.
+
     Call(m_peGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_COMM, &dblCommBacklog, 0),__LINE__);
     // qDebug() << "Comm Backlog = " << dblCommBacklog;
        // qDebug() << "Stop:" << timer.elapsed();
+        scanNumber++; // update scan reference number
 }
 
 void LabJack::StreamStop(void)

@@ -24,6 +24,8 @@ public:
     QString status;
     QElapsedTimer timer; // use the system clock for time measurements
     Speed localWheelspeed;
+    // more debug info
+    double scanNumber;
 
 private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);
