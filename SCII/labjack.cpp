@@ -43,24 +43,38 @@ void LabJack::Configure(void)
 
     // Use the 48 MHz timer clock base with divider.
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0), __LINE__);
+    //Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc1MHZ_DIV, 0, 0), __LINE__);
 
     // Set the divisor to 48 so the actual timer clock is 1 MHz.
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0), __LINE__);
 
-    // Set the timer/counter pin offset to FIO4, which will put the first
+    // Set the first timer/counter pin offset to FIO4 (others will automatically be set to FI04+)
     Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0), __LINE__);
 
-    // Enable both timers.// TODO - 1 or 2? this should probably only one until we need the other
+    //Make sure Counter0 and 1 are disabled.
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 0, 0, 0, 0), __LINE__);
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 1, 0, 0, 0), __LINE__);
+
+    // Enable 0, 1 or 2 timers.
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 1, 0, 0), __LINE__);
 
-    // Enable timer 32-bit rising to rising edge measurement LJ_tmRISINGEDGES32
-    // Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmRISINGEDGES32, 0, 0), __LINE__);
-    // debounced circuit gives a really good falling edge so we will use that
     // Enable timer 32-bit falling to falling edge measurement
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmFALLINGEDGES32, 0, 0), __LINE__);
 
+    // add a squarewave out put for testing purposes
+    //Configure Timer0 as 16-bit PWM.  It will have a frequency
+    //of 1M/256 = 3906.25 Hz.
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_MODE, 1, LJ_tmPWM16, 0, 0), __LINE__);
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_MODE, 1, LJ_tmFREQOUT, 0, 0), __LINE__);
+
+    //Initialize frequency output at 1M/(2*5) = 100 kHz.
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_VALUE, 1, 255, 0, 0), __LINE__);
+
+    //Initialize the 8-bit PWM with a 50% duty cycle.
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_VALUE, 1, 32768, 0, 0), __LINE__);
+
     //Set FIO5 to output-low.
-    Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
+    //Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
 
     // Execute the requests.
     Call(m_pGoOne (lngHandle), __LINE__);
@@ -201,12 +215,14 @@ void LabJack::StreamUpdate(void)
         if (scanData[k] > 0)
         {
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
+            //ms = scanData[k]/50;
             localWheelspeed.set_period_s(ms/1000);
             totalTime_ms += ms;
             // qDebug()
             out
                 << "," << dblCommBacklog // should always be zero
                 << "," << scanNumber // we are tracking each scan by number
+                << "," << k // we are tracking each scan by number
                 << "," << scanData[k+1]    //MSW
                 << "," << scanData[k]    //LSW
                 << "," << totalTime_ms/1000

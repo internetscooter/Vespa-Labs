@@ -30,7 +30,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     //update screen every x seconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(100);
+    timer->start(1000);
 
     //simulate pulses (requires FI05 to be connected to FIO4)
 //    pulseTimer = new QTimer();
