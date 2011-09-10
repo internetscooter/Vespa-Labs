@@ -214,6 +214,21 @@ void LabJack::StreamUpdate(void)
             //adblData[k] = 99999.0;
         if (scanData[k] > 0)
         {
+
+            // Sanity check here...
+            // The LabJack can throw some wild values at you, however here is pseudo code for a sanity check
+            //
+            // keep last sane period measurement
+            // keep last_k
+            // keep last_scanNumber
+            //
+            // if (k - last_k)/2 * scanRate ~= ms
+            // use new value
+            // else use old value
+            //
+            // since we are getting a value of time between last trigger and now, then logically the
+            // time between slots in the scan should also roughly be the same.
+
             ms = ((scanData[k+1] * 65536) + scanData[k])/1000;
             //ms = scanData[k]/50;
             localWheelspeed.set_period_s(ms/1000);
