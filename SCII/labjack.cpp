@@ -19,8 +19,12 @@ LabJack::LabJack():
     // Load the DLL
     LoadLabJackUD();
 
-    // Open the first found U3 LabJack - we only expecting one (for now)
-    Call (m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
+    // Open the first found U6 LabJack - we are only expecting one (for now)
+    Call (m_pOpenLabJack (LJ_dtU6, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
+
+    // Use this instead of the above if using a U3
+    // Open the first found *U3* LabJack - we are only expecting one (for now)
+    // Call (m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
 
     // Reset pin assignments are in the factory default condition.
     Call (m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
@@ -43,13 +47,14 @@ void LabJack::Configure(void)
 
     // Use the 48 MHz timer clock base with divider.
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0), __LINE__);
-    //Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc1MHZ_DIV, 0, 0), __LINE__);
 
     // Set the divisor to 48 so the actual timer clock is 1 MHz.
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0), __LINE__);
 
-    // Set the first timer/counter pin offset to FIO4 (others will automatically be set to FI04+)
-    Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0), __LINE__);
+    // U3 Set the first timer/counter pin offset to FIO4 (others will automatically be set to FI04+)
+    // Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0), __LINE__);
+    // U6 Set the first timer/counter pin offset to FIO0 (others will automatically be set to FI00+)
+    Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 0, 0, 0), __LINE__);
 
     //Make sure Counter0 and 1 are disabled.
     Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 0, 0, 0, 0), __LINE__);
