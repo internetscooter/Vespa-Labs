@@ -7,25 +7,29 @@
 #include <QLibrary>
 #include <QWaitCondition>
 
+#define U6 // this is how we choose the type of LabJack for the moment
+
 LabJack::LabJack():
     lngHandle(0),
     scanRate_Hz(1000),
     totalTime_ms(0),
     scanNumber(0),
     pulseCount(0),
+    ljInternalTemp(0),
     localWheelspeed(0,1.360), // Sava MC31 10inch
     status("Initialising...")
 {
     // Load the DLL
     LoadLabJackUD();
 
+#ifdef U6
     // Open the first found U6 LabJack - we are only expecting one (for now)
     Call (m_pOpenLabJack (LJ_dtU6, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
-
+#else
     // Use this instead of the above if using a U3
     // Open the first found *U3* LabJack - we are only expecting one (for now)
-    // Call (m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
-
+    Call (m_pOpenLabJack (LJ_dtU3, LJ_ctUSB, "1", 1, &lngHandle), __LINE__);
+#endif
     // Reset pin assignments are in the factory default condition.
     Call (m_pePut (lngHandle, LJ_ioPIN_CONFIGURATION_RESET, 0, 0, 0),__LINE__);
 
@@ -39,23 +43,29 @@ LabJack::LabJack():
 }
 
 // Configure the LabJack pins, clock, timers and stream
-void LabJack::Configure(void)
+void LabJack::ConfigureStreamed(void)
 {
     long lngGetNextIteration;
     long lngIOType=0, lngChannel=0;
     double dblValue=0;
-
+    long ainResolution = 0;	//Configure resolution of the analog inputs (pass a non-zero value for quick sampling).
+                                                    //See section 2.6 / 3.1 for more information.
     // Use the 48 MHz timer clock base with divider.
-    Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0), __LINE__);
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0), __LINE__);
 
     // Set the divisor to 48 so the actual timer clock is 1 MHz.
-    Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0), __LINE__);
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0), __LINE__);
 
-    // U3 Set the first timer/counter pin offset to FIO4 (others will automatically be set to FI04+)
-    // Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0), __LINE__);
+    //Configure the desired resolution.  See section 2.6 / 3.1
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_CONFIG, LJ_chAIN_RESOLUTION, ainResolution, 0, 0), __LINE__);
+
+#ifdef U6
     // U6 Set the first timer/counter pin offset to FIO0 (others will automatically be set to FI00+)
     Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 0, 0, 0), __LINE__);
-
+#else
+    // U3 Set the first timer/counter pin offset to FIO4 (others will automatically be set to FI04+)
+     Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0), __LINE__);
+#endif
     //Make sure Counter0 and 1 are disabled.
     Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 0, 0, 0, 0), __LINE__);
     Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 1, 0, 0, 0), __LINE__);
@@ -65,21 +75,6 @@ void LabJack::Configure(void)
 
     // Enable timer 32-bit falling to falling edge measurement
     Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmFALLINGEDGES32, 0, 0), __LINE__);
-
-    // add a squarewave out put for testing purposes
-    //Configure Timer0 as 16-bit PWM.  It will have a frequency
-    //of 1M/256 = 3906.25 Hz.
-    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_MODE, 1, LJ_tmPWM16, 0, 0), __LINE__);
-    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_MODE, 1, LJ_tmFREQOUT, 0, 0), __LINE__);
-
-    //Initialize frequency output at 1M/(2*5) = 100 kHz.
-    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_VALUE, 1, 255, 0, 0), __LINE__);
-
-    //Initialize the 8-bit PWM with a 50% duty cycle.
-    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_VALUE, 1, 32768, 0, 0), __LINE__);
-
-    //Set FIO5 to output-low.
-    //Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
 
     // Execute the requests.
     Call(m_pGoOne (lngHandle), __LINE__);
@@ -123,6 +118,9 @@ void LabJack::Configure(void)
     //Add TC_Capture 224 MSW - (high bit for the above) to the scan
     Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 224, 0, 0, 0), __LINE__);
 
+    //Add Internal Temperature U6 Channel 14
+    // doesn't work Call(m_pAddRequest(lngHandle, LJ_ioADD_STREAM_CHANNEL, 14, 0, 0, 0), __LINE__);
+
     //Execute the list of requests.
     Call(m_pGoOne(lngHandle), __LINE__);
 
@@ -158,6 +156,60 @@ void LabJack::Configure(void)
 
 }
 
+void LabJack::ConfigurePolled(void)
+{
+    long lngGetNextIteration;
+    long lngIOType=0, lngChannel=0;
+    double dblValue=0;
+    long ainResolution = 0;	//Configure resolution of the analog inputs (pass a non-zero value for quick sampling).
+                                                    //See section 2.6 / 3.1 for more information.
+    // Use the 48 MHz timer clock base with divider.
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_BASE, LJ_tc48MHZ_DIV, 0, 0), __LINE__);
+
+    // Set the divisor to 48 so the actual timer clock is 1 MHz.
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_CONFIG, LJ_chTIMER_CLOCK_DIVISOR, 48, 0, 0), __LINE__);
+
+    //Configure the desired resolution.  See section 2.6 / 3.1
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_CONFIG, LJ_chAIN_RESOLUTION, ainResolution, 0, 0), __LINE__);
+
+#ifdef U6
+    // U6 Set the first timer/counter pin offset to FIO0 (others will automatically be set to FI00+)
+    Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 0, 0, 0), __LINE__);
+#else
+    // U3 Set the first timer/counter pin offset to FIO4 (others will automatically be set to FI04+)
+     Call(m_pAddRequest (lngHandle,  LJ_ioPUT_CONFIG, LJ_chTIMER_COUNTER_PIN_OFFSET, 4, 0, 0), __LINE__);
+#endif
+    //Make sure Counter0 and 1 are disabled.
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 0, 0, 0, 0), __LINE__);
+    Call(m_pAddRequest (lngHandle, LJ_ioPUT_COUNTER_ENABLE, 1, 0, 0, 0), __LINE__);
+
+    // Enable 0, 1 or 2 timers.
+    Call(m_pAddRequest  (lngHandle, LJ_ioPUT_CONFIG, LJ_chNUMBER_TIMERS_ENABLED, 1, 0, 0), __LINE__);
+
+    // Enable timer 32-bit falling to falling edge measurement
+    Call(m_pAddRequest  (lngHandle, LJ_ioPUT_TIMER_MODE, 0, LJ_tmFALLINGEDGES32, 0, 0), __LINE__);
+
+    // Execute the requests.
+    Call(m_pGoOne (lngHandle), __LINE__);
+
+    //Get all the results just to check for errors.
+    lngErrorcode = m_pGetFirstResult(lngHandle, &lngIOType, &lngChannel, &dblValue, 0, 0);
+    ErrorHandler(lngErrorcode, __LINE__, 0);
+    lngGetNextIteration=0;	//Used by the error handling function.
+    while(lngErrorcode < LJE_MIN_GROUP_ERROR)
+    {
+            lngErrorcode = m_pGetNextResult(lngHandle, &lngIOType, &lngChannel, &dblValue, 0, 0);
+            if(lngErrorcode != LJE_NO_MORE_DATA_AVAILABLE)
+            {
+                    ErrorHandler(lngErrorcode, __LINE__, lngGetNextIteration);
+            }
+            lngGetNextIteration++;
+    }
+
+    status = "Configured Polled";
+
+}
+
 void LabJack::CreateTestPulse(int milliseconds)
 {
     //Set FIO5 to output-high.
@@ -173,6 +225,7 @@ void LabJack::StreamUpdate(void)
 {
     // qDebug() << "Scan?";
     // qDebug() << "Start:" << timer.elapsed();
+    double dblValue=0;
     long k=0;
     double ms=0;
     double numScans = scanRate_Hz * 2;                              // the expected number rate x 2 channels
@@ -264,14 +317,21 @@ void LabJack::StreamUpdate(void)
 
     }
     //Retrieve the current backlog.  The UD driver retrieves stream data from
-    //the U3 in the background, but if the computer is too slow for some reason
-    //the driver might not be able to read the data as fast as the U3 is
-    //acquiring it, and thus there will be data left over in the U3 buffer.
+    //the LabJack in the background, but if the computer is too slow for some reason
+    //the driver might not be able to read the data as fast as the LabJack is
+    //acquiring it, and thus there will be data left over in the LabJack buffer.
 
     Call(m_peGet(lngHandle, LJ_ioGET_CONFIG, LJ_chSTREAM_BACKLOG_COMM, &dblCommBacklog, 0),__LINE__);
     // qDebug() << "Comm Backlog = " << dblCommBacklog;
-       // qDebug() << "Stop:" << timer.elapsed();
-        scanNumber++; // update scan reference number
+    // qDebug() << "Stop:" << timer.elapsed();
+    scanNumber++; // update scan reference number
+
+    Call(m_peGet(lngHandle, LJ_ioSTOP_STREAM, 0, &dblValue, 0), __LINE__);
+    // Get LabJack's Internal Temperature
+    Call(m_peGet(lngHandle, LJ_ioGET_AIN, 14, &ljInternalTemp, 0),__LINE__);
+    qDebug() << "Internal Temp = " << ljInternalTemp;
+
+    Call(m_peGet(lngHandle, LJ_ioSTART_STREAM, 0, &dblValue, 0), __LINE__);
 }
 
 void LabJack::StreamStop(void)

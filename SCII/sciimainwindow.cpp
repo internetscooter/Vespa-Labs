@@ -19,7 +19,7 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     statusBar()->showMessage("Locating Vespa LabJack...");
     vespaLabJack = new LabJack();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
-    vespaLabJack->Configure();
+    vespaLabJack->ConfigureStreamed();
     statusBar()->showMessage("Vespa LabJack: " + vespaLabJack->status);
 
     // Quick and dirty Temp file logging to capture some data
@@ -27,10 +27,10 @@ SCIIMainWindow::SCIIMainWindow(QWidget *parent) :
     // logfile = new QFile( "vespa.log" );
     // logfile->open(QIODevice::WriteOnly | QIODevice::Text);
 
-    //update screen every x seconds
+    //update screen every x milliseconds
     QTimer *timer = new QTimer();
     connect(timer, SIGNAL(timeout()), this, SLOT(slotUpdate()));
-    timer->start(1000);
+    timer->start(100);
 
     //simulate pulses (requires FI05 to be connected to FIO4)
 //    pulseTimer = new QTimer();
@@ -80,6 +80,12 @@ void SCIIMainWindow::slotPulseGen(void)
         //pulseTimer->setSingleShot(true);
     //pulseTimer->start(sim);
 
+}
+
+void SCIIMainWindow::loadConfiguration(QString filename)
+{
+   // Cut+Paste example for later
+   // QHash<QString,QString> dict;	dict["book.owner"] = "skumar";	dict["book.version"] = "0.1.0"; 	QFile file(PATH);	file.open(QIODevice::WriteOnly);	QDataStream out(&file);   // write the data	out << dict;	file.close(); 	//setting new a value	dict["book.owner"] = "Sunil Kumar"; 	//update the dictionary	file.open(QIODevice::ReadOnly);	QDataStream in(&file);   // read the data serialized from the file	in >> dict; 	qDebug() << "value: " << dict.value("book.owner");	return 0;
 }
 
 SCIIMainWindow::~SCIIMainWindow()

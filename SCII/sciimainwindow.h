@@ -26,6 +26,7 @@ private:
     QTimer *pulseTimer;
     LabJack *vespaLabJack;
     Speed wheelSpeed; // decouple later
+    void loadConfiguration(QString filename);
 
 public slots:
 

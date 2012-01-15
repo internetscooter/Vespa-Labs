@@ -1,0 +1,16 @@
+    // add a squarewave out put for testing purposes
+    //Configure Timer0 as 16-bit PWM.  It will have a frequency
+    //of 1M/256 = 3906.25 Hz.
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_MODE, 1, LJ_tmPWM16, 0, 0), __LINE__);
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_MODE, 1, LJ_tmFREQOUT, 0, 0), __LINE__);
+
+    //Initialize frequency output at 1M/(2*5) = 100 kHz.
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_VALUE, 1, 255, 0, 0), __LINE__);
+
+    //Initialize the 8-bit PWM with a 50% duty cycle.
+    //Call(m_pAddRequest (lngHandle, LJ_ioPUT_TIMER_VALUE, 1, 32768, 0, 0), __LINE__);
+
+    //Set FIO5 to output-low.
+    //Call(m_pePut (lngHandle, LJ_ioPUT_DIGITAL_BIT, 5, 0, 0),__LINE__);
+
+

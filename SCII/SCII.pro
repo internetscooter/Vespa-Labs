@@ -26,7 +26,8 @@ HEADERS  += sciimainwindow.h \
 FORMS    += sciimainwindow.ui
 
 OTHER_FILES += \
-    README_SCII.txt
+    README_SCII.txt \
+    code_snippets.txt
 
 # Qt Embedded Widgets
 include(../SCII/3rdParty/ewiframework/third_party/common/common.pri)
@@ -60,3 +61,4 @@ RESOURCES += \
     3rdParty/ewiframework/third_party/skins/beryl_multislider.qrc \
     3rdParty/ewiframework/third_party/skins/beryl_5waybutton.qrc \
     3rdParty/ewiframework/third_party/skins/amperemeter_svgdialgauge.qrc
+

@@ -17,7 +17,8 @@ class LabJack
 public:
     LabJack();
     void LoadLabJackUD (void);
-    void Configure(void);
+    void ConfigureStreamed(void);
+    void ConfigurePolled(void);
     void StreamTest(void);
     void StreamStop(void);
     void CreateTestPulse(int milliseconds = 1);
@@ -26,6 +27,7 @@ public:
     Speed localWheelspeed;
     // more debug info
     double scanNumber;
+    double GetLJInternalTemperature() {return ljInternalTemp;}
 
 private:
     void ErrorHandler (LJ_ERROR lngErrorcode, long lngLineNumber, long lngIteration);
@@ -44,6 +46,7 @@ private:
     QTimer *readTimer;
     QFile *logfile;
     QTextStream out;
+    double ljInternalTemp;
 
     //Define variables for the UD functions.
     tListAll m_pListAll;

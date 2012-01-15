@@ -39,7 +39,7 @@
      <enum>QTabWidget::Triangular</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="ScootTab">
      <attribute name="title">
@@ -98,17 +98,17 @@
         </spacer>
        </item>
        <item row="0" column="1">
-        <widget class="QtSvgDialGauge" name="svgSpeedometer">
+        <widget class="QtSvgDialGauge" name="svgSpeedometer" native="true">
          <property name="toolTip">
           <string>An SVG button widget.</string>
          </property>
          <property name="whatsThis">
           <string>An SVG button widget.</string>
          </property>
-         <property name="skin">
+         <property name="skin" stdset="0">
           <string>Tachometer</string>
          </property>
-         <property name="maximum">
+         <property name="maximum" stdset="0">
           <number>10</number>
          </property>
         </widget>
@@ -125,6 +125,39 @@
      <attribute name="title">
       <string>Data</string>
      </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>281</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="vlSpeed">
+       <item>
+        <widget class="QLCDNumber" name="lcdSpeed"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>20</y>
+        <width>281</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="vlTemperature">
+       <item>
+        <widget class="QLCDNumber" name="lcdCHT"/>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="lcdLabJack"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
   </widget>
