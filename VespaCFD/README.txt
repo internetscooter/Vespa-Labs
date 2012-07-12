@@ -1,0 +1,1 @@
+Some helper utils for doing stuff with CFD, specifically STL mesh manipulation
