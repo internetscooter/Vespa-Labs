@@ -22,6 +22,7 @@
 #include <iostream>
 using namespace std;
 
+// soon to be updated - just a git test for the moment
 int main(int argc, char *argv[])
 {
 	// check and get the stl input file provided
