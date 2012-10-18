@@ -21,10 +21,13 @@ INCLUDEPATH += $(VTK_DIR)\\Common \
                $(VTK_DIR)\\Graphics \
                $(VTK_DIR)\\build
 
-LIBS +=     -LD:\\vtk-5.8.0\\build\\bin\\Release \
-            -lvtkCommon -lvtkRendering -lvtkGraphics -lvtkFiltering -lvtkIO# -lvtksys -lvtkViews -lvtkWidgets -lvtkInfovis   \
-#            -lvtkImaging  -lvtklibxml2 -lvtkDICOMParser -lvtkpng -lvtkpng -lvtktiff -lvtkzlib \
-#            -lvtkjpeg -lvtkalglib -lvtkexpat -lvtkverdict -lvtkmetaio -lvtkNetCDF -lvtksqlite -lvtkexoIIc -lvtkftgl \
-#            -lvtkfreetype -lvtkHybrid
+LIBS +=     -LD:\\vtk-5.8.0\\Build\\bin\\Debug \
+            -lvtkCommon -lvtkRendering -lvtkGraphics -lvtkFiltering -lvtkIO -lvtksys -lvtkViews -lvtkWidgets -lvtkInfovis   \
+            -lvtkImaging  -lvtklibxml2 -lvtkDICOMParser -lvtkpng -lvtkpng -lvtktiff -lvtkzlib \
+            -lvtkjpeg -lvtkalglib -lvtkexpat -lvtkverdict -lvtkmetaio -lvtkNetCDF -lvtksqlite -lvtkexoIIc -lvtkftgl \
+            -lvtkfreetype -lvtkHybrid
+
+LIBS +=     -LD:\\vtk-5.8.0\\Build\\bin\\Debug \
+            -lvtkCommon -lvtkRendering -lvtkGraphics -lvtkFiltering -lvtkIO -lvtksys -lvtkViews -lvtktiff
 
 SOURCES += CalculateFrontalArea.cxx
