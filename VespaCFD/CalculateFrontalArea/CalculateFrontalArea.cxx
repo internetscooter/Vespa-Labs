@@ -26,13 +26,22 @@
 #include <iostream>
 using namespace std;
 
+// just to make things nicer later and save some documentation reading ;)
+struct boundingBox {
+    double xmin;
+    double xmax;
+    double ymin;
+    double ymax;
+    double zmin;
+    double zmax;
+};
+
 // this projects a series of lines through a mesh and looks for intersections to determine frontal area
 // lines are projected based on the bounding box and the resolution is determined by the steps
 // For my application I just need to look at frontal area along the X direction. The follow code could easily be
 // adapted to take a direction as a command line option and produce the area from that .
 // So this currently "scans" yMin->yMax,zMin->ZMax, with a line from Xmin to Xmax
 // ref: http://www.cmake.org/Wiki/VTK/Examples/Cxx/DataStructures/OBBTree_IntersectWithLine
-
 int main(int argc, char *argv[])
 {
 	// check and get the stl input file provided
@@ -44,7 +53,8 @@ int main(int argc, char *argv[])
     std::string inputfile = argv[1];
 
     // later this should be a command line option - hard coded for now
-    double resolution = 2; // step value while scanning
+    double resolution = 1; // step value while scanning
+    //char direction = "X";  // direction of scan
 
     // read STL and print out some info
     std::cout << "Reading: " << inputfile << std::endl;
@@ -62,15 +72,22 @@ int main(int argc, char *argv[])
 
     // makes sense to only scan in an area the object exists, the bounding box will tell us this
     double bounds[6];
+    boundingBox boxBounds;
     polydata->GetBounds(bounds);
+    boxBounds.xmin = bounds[0];
+    boxBounds.xmax = bounds[1];
+    boxBounds.ymin = bounds[2];
+    boxBounds.ymax = bounds[3];
+    boxBounds.zmin = bounds[4];
+    boxBounds.zmax = bounds[5];
 
     //    Debug info if needed:
-    std::cout  << "xmin: " << bounds[0] << " "
-               << "xmax: " << bounds[1] << std::endl
-               << "ymin: " << bounds[2] << " "
-               << "ymax: " << bounds[3] << std::endl
-               << "zmin: " << bounds[4] << " "
-               << "zmax: " << bounds[5] << std::endl;
+    std::cout  << "xmin: " << boxBounds.xmin << " "
+               << "xmax: " << boxBounds.xmax << std::endl
+               << "ymin: " << boxBounds.ymin << " "
+               << "ymax: " << boxBounds.ymax << std::endl
+               << "zmin: " << boxBounds.zmin << " "
+               << "zmax: " << boxBounds.zmax << std::endl;
 
     // build OBB Tree locator
     vtkSmartPointer<vtkOBBTree> tree = vtkSmartPointer<vtkOBBTree>::New();
@@ -79,33 +96,20 @@ int main(int argc, char *argv[])
 
     // calculate area
     double area = 0;
-    for (double ydir = bounds[2]; ydir < bounds[3]; ydir = ydir + resolution)
+    for (double zdir = boxBounds.zmin; zdir < boxBounds.zmax; zdir = zdir + resolution)
     {
-        for (double xdir = bounds[0]; xdir < bounds[1]; xdir = xdir + resolution)
+        for (double ydir = boxBounds.ymin; ydir <= boxBounds.ymax; ydir = ydir + resolution)
         {
-
-
             // Line to intersect with
-            double p1[3] = {xdir, ydir, bounds[4]};
-            double p2[3] = {xdir, ydir, bounds[5]};
+            double p1[3] = {boxBounds.xmin, ydir, zdir};
+            double p2[3] = {boxBounds.xmax, ydir, zdir};
             //Find intersection points
             vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
             tree->IntersectWithLine(p1, p2, intersectPoints, NULL);
-
-    //        std::cout << "NumPoints: " << intersectPoints->GetNumberOfPoints()
-    //                  << std::endl;
-//            for(int i = 0; i < intersectPoints->GetNumberOfPoints(); i++ )
-//            {
-//                double intersection[3];
-//                intersectPoints->GetPoint(i, intersection);
-//                std::cout << "Intersection " << i << ": "
-//                          << intersection[0] << ", "
-//                          << intersection[1] << ", "
-//                          << intersection[2] << std::endl;
-//            }
+            // this bit will draw a rough approximation of the shape
             if (intersectPoints->GetNumberOfPoints() > 0)
             {
-                cout << ".";
+                cout << "#";
                 area++;
             }
             else
@@ -115,7 +119,7 @@ int main(int argc, char *argv[])
         }
         cout << std::endl;
     }
-    cout << "area: " << area << std::endl;
+    cout << "area: " << area * resolution << std::endl;
 
     return EXIT_SUCCESS;
 }
