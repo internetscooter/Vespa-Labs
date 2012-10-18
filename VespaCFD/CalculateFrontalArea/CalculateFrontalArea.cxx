@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     std::string inputfile = argv[1];
 
     // later this should be a command line option - hard coded for now
-    double resolution = 1; // step value while scanning
+    double resolution = 1; // step value while scanning - will need to do some more calculations later if changed
     //char direction = "X";  // direction of scan
 
     // read STL and print out some info
@@ -119,7 +119,8 @@ int main(int argc, char *argv[])
         }
         cout << std::endl;
     }
-    cout << "area: " << area * resolution << std::endl;
+    // output how many hits, which for a resolution of 1 should equal something like 1mm^2
+    cout << "area: " << area << std::endl;
 
     return EXIT_SUCCESS;
 }
