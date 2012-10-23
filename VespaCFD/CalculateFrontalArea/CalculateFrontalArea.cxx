@@ -44,7 +44,7 @@ struct boundingBox {
 // ref: http://www.cmake.org/Wiki/VTK/Examples/Cxx/DataStructures/OBBTree_IntersectWithLine
 int main(int argc, char *argv[])
 {
-	// check and get the stl input file provided
+        // check and get the stl input file provided
     if ( argc != 2 )
     {
         cout << "Required parameters: Filename" << endl;
@@ -53,15 +53,15 @@ int main(int argc, char *argv[])
     std::string inputfile = argv[1];
 
     // later this should be a command line option - hard coded for now
-    double resolution = 1; // step value while scanning - will need to do some more calculations later if changed
+    double resolution = 0.005; // step value while scanning - will need to do some more calculations later if changed
     //char direction = "X";  // direction of scan
 
     // read STL and print out some info
     std::cout << "Reading: " << inputfile << std::endl;
     vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
     stlReader->SetFileName(inputfile.c_str());
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New(); 
-	polydata = stlReader->GetOutput();
+        vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+        polydata = stlReader->GetOutput();
     polydata->Update();
     //    Debug info if needed:
     cout << "Cells: " << polydata->GetNumberOfCells() << endl;
@@ -74,12 +74,12 @@ int main(int argc, char *argv[])
     double bounds[6];
     boundingBox boxBounds;
     polydata->GetBounds(bounds);
-    boxBounds.xmin = bounds[0];
-    boxBounds.xmax = bounds[1];
-    boxBounds.ymin = bounds[2];
-    boxBounds.ymax = bounds[3];
-    boxBounds.zmin = bounds[4];
-    boxBounds.zmax = bounds[5];
+    boxBounds.xmin = bounds[0] - resolution*5;
+    boxBounds.xmax = bounds[1] + resolution*5;
+    boxBounds.ymin = bounds[2] - resolution*5;
+    boxBounds.ymax = bounds[3] + resolution*5;
+    boxBounds.zmin = bounds[4] - resolution*5;
+    boxBounds.zmax = bounds[5] + resolution*5;
 
     //    Debug info if needed:
     std::cout  << "xmin: " << boxBounds.xmin << " "
@@ -98,11 +98,11 @@ int main(int argc, char *argv[])
     double area = 0;
     for (double zdir = boxBounds.zmin; zdir < boxBounds.zmax; zdir = zdir + resolution)
     {
-        for (double ydir = boxBounds.ymin; ydir <= boxBounds.ymax; ydir = ydir + resolution)
+        for (double ydir = boxBounds.ymin; ydir < boxBounds.ymax; ydir = ydir + resolution)
         {
             // Line to intersect with
-            double p1[3] = {boxBounds.xmin, ydir, zdir};
-            double p2[3] = {boxBounds.xmax, ydir, zdir};
+            double p1[3] = {boxBounds.xmin, ydir + resolution/2, zdir + resolution/2,};
+            double p2[3] = {boxBounds.xmax, ydir + resolution/2, zdir + resolution/2,};
             //Find intersection points
             vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
             tree->IntersectWithLine(p1, p2, intersectPoints, NULL);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         cout << std::endl;
     }
     // output how many hits, which for a resolution of 1 should equal something like 1mm^2
-    cout << "area: " << area << std::endl;
+    cout << "area: " << area * resolution * resolution << std::endl;
 
     return EXIT_SUCCESS;
 }
