@@ -1,26 +1,17 @@
+// VTK
 #include <vtkPolyData.h>
-#include <vtkTriangle.h>
-#include <vtkLineSource.h>
 #include <vtkSTLReader.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkIdTypeArray.h>
-#include <vtkSelectionNode.h>
 #include <vtkActor.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSelection.h>
-#include <vtkExtractSelection.h>
-#include <vtkDataSetMapper.h>
-#include <vtkProperty.h>
-#include <vtkObjectFactory.h>
-#include <vtkCellArray.h>
-#include <vtkCell.h>
-#include <vtkInformation.h>
-#include <vtkExtractSelectedPolyDataIds.h>
-#include <vtkOBBTree.h>
-
+#include <vtkWindowToImageFilter.h>
+#include <vtkPNGWriter.h>
+#include <vtkCamera.h>
+#include <vtkImageData.h>
+#include <vtkImageMagnitude.h>
 
 // C++
 #include <iostream>
@@ -36,15 +27,9 @@ struct boundingBox {
     double zmax;
 };
 
-// this projects a series of lines through a mesh and looks for intersections to determine frontal area
-// lines are projected based on the bounding box and the resolution is determined by the steps
-// For my application I just need to look at frontal area along the X direction. The follow code could easily be
-// adapted to take a direction as a command line option and produce the area from that .
-// So this currently "scans" yMin->yMax,zMin->ZMax, with a line from Xmin to Xmax
-// ref: http://www.cmake.org/Wiki/VTK/Examples/Cxx/DataStructures/OBBTree_IntersectWithLine
 int main(int argc, char *argv[])
 {
-        // check and get the stl input file provided
+	// check and get the stl input file provided
     if ( argc != 2 )
     {
         cout << "Required parameters: Filename" << endl;
@@ -52,75 +37,161 @@ int main(int argc, char *argv[])
     }
     std::string inputfile = argv[1];
 
-    // later this should be a command line option - hard coded for now
-    double resolution = 0.005; // step value while scanning - will need to do some more calculations later if changed
-    //char direction = "X";  // direction of scan
-
-    // read STL and print out some info
+    // Read STL
     std::cout << "Reading: " << inputfile << std::endl;
     vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
     stlReader->SetFileName(inputfile.c_str());
-        vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-        polydata = stlReader->GetOutput();
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New(); 
+	polydata = stlReader->GetOutput();
     polydata->Update();
-    //    Debug info if needed:
-    cout << "Cells: " << polydata->GetNumberOfCells() << endl;
-    cout << "Points: " << polydata->GetNumberOfPoints() << endl;
-    cout << "Polys: " << polydata->GetNumberOfPolys() << endl;
-    cout << "Verts: " << polydata->GetNumberOfVerts() << endl;
-    polydata->Print(cout);
 
     // makes sense to only scan in an area the object exists, the bounding box will tell us this
+    double centre[3];
     double bounds[6];
     boundingBox boxBounds;
     polydata->GetBounds(bounds);
-    boxBounds.xmin = bounds[0] - resolution*5;
-    boxBounds.xmax = bounds[1] + resolution*5;
-    boxBounds.ymin = bounds[2] - resolution*5;
-    boxBounds.ymax = bounds[3] + resolution*5;
-    boxBounds.zmin = bounds[4] - resolution*5;
-    boxBounds.zmax = bounds[5] + resolution*5;
+    polydata->GetCenter(centre);
+    boxBounds.xmin = bounds[0];
+    boxBounds.xmax = bounds[1];
+    boxBounds.ymin = bounds[2];
+    boxBounds.ymax = bounds[3];
+    boxBounds.zmin = bounds[4];
+    boxBounds.zmax = bounds[5];
 
     //    Debug info if needed:
-    std::cout  << "xmin: " << boxBounds.xmin << " "
-               << "xmax: " << boxBounds.xmax << std::endl
-               << "ymin: " << boxBounds.ymin << " "
-               << "ymax: " << boxBounds.ymax << std::endl
-               << "zmin: " << boxBounds.zmin << " "
-               << "zmax: " << boxBounds.zmax << std::endl;
+    cout  << "xmin: " << boxBounds.xmin << " "
+          << "xmax: " << boxBounds.xmax << endl
+          << "ymin: " << boxBounds.ymin << " "
+          << "ymax: " << boxBounds.ymax << endl
+          << "zmin: " << boxBounds.zmin << " "
+          << "zmax: " << boxBounds.zmax << endl;
 
-    // build OBB Tree locator
-    vtkSmartPointer<vtkOBBTree> tree = vtkSmartPointer<vtkOBBTree>::New();
-    tree->SetDataSet(polydata);
-    tree->BuildLocator();
+    cout << "position x:" << centre[0] <<  " "
+         << " y:" << centre[1] << " z:" << centre[2] << endl;
 
-    // calculate area
+    // Visualise
+    vtkSmartPointer<vtkPolyDataMapper> polydataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    polydataMapper->SetInput(polydata);
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(polydataMapper);
+
+//    // Description:
+//    // Set/Get the scaling used for a parallel projection, i.e. the height
+//    // of the viewport in world-coordinate distances. The default is 1.
+//    // Note that the "scale" parameter works as an "inverse scale" ---
+//    // larger numbers produce smaller images.
+//    // This method has no effect in perspective projection mode.
+//    void SetParallelScale(double scale);
+//    vtkGetMacro(ParallelScale,double);
+
+//    How camera is configured from:
+//    D:\vtk-5.8.0\Rendering\vtkCamera.cxx
+//    if ( this->ParallelProjection)
+//      {
+//      // set up a rectangular parallelipiped
+
+//      double width = this->ParallelScale * aspect;
+//      double height = this->ParallelScale;
+
+//      double xmin = ( this->WindowCenter[0] - 1.0 ) * width;
+//      double xmax = ( this->WindowCenter[0] + 1.0 ) * width;
+//      double ymin = ( this->WindowCenter[1] - 1.0 ) * height;
+//      double ymax = ( this->WindowCenter[1] + 1.0 ) * height;
+
+//      this->ProjectionTransform->Ortho( xmin, xmax, ymin, ymax,
+//                                        this->ClippingRange[0],
+//                                        this->ClippingRange[1] );
+//      }
+
+
+    // Camera
+    vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
+    camera->SetFocalPoint(centre);
+    camera->SetPosition(centre[0],centre[1]+1000.33432,centre[2]);
+    camera->SetParallelProjection(1);
+    camera->SetParallelScale(0.05);
+    //camera->SetThickness(0.2);
+    camera->SetClippingRange(camera->GetDistance()+boxBounds.zmax, 0.2);
+    camera->SetViewUp(0,0,1);
+    //camera->SetParallelScale(0.5*boxBounds.ymax-boxBounds.ymin);
+    //camera->SetDistance(1000);
+    // need to calculate centre of thing and how far back we need to get
+    camera->Print(cout);
+    // Render
+    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+    renderer->AddActor(actor);
+    renderer->SetBackground(1,1,1); // Background color white
+    renderer->SetAutomaticLightCreation(0);// Turn off the lights so the object is black
+    renderer->SetActiveCamera(camera);
+
+    //renderer->ResetCamera(bounds);
+    //camera->Print(cout);
+
+    // Render Window
+    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+    renderWindow->AddRenderer(renderer);
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    renderWindowInteractor->SetRenderWindow(renderWindow);
+    renderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+    renderWindow->Render();
+
+    // Screenshot
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImageFilter->SetInput(renderWindow);
+    windowToImageFilter->SetMagnification(10); //set the resolution of the output image (3 times the current resolution of vtk render window)
+    windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+    windowToImageFilter->Update();
+
+    // Create an image data
+    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+    imageData = windowToImageFilter->GetOutput();
+    int* dims = imageData->GetDimensions();
+
+//    std::cout << "Dims: " << " x: " << dims[0] << " y: " << dims[1] << " z: " << dims[2] << std::endl;
+//    std::cout << "Number of points: " << imageData->GetNumberOfPoints() << std::endl;
+//    std::cout << "Number of cells: " << imageData->GetNumberOfCells() << std::endl;
+//    imageData->Print(cout);
+
+    cout << imageData->GetScalarTypeAsString();
+
     double area = 0;
-    for (double zdir = boxBounds.zmin; zdir < boxBounds.zmax; zdir = zdir + resolution)
-    {
-        for (double ydir = boxBounds.ymin; ydir < boxBounds.ymax; ydir = ydir + resolution)
+
+    // Retrieve the entries from the image data and print them to the screen
+    for (int z = 0; z < dims[2]; z++)
+      {
+      for (int y = 0; y < dims[1]; y++)
         {
-            // Line to intersect with
-            double p1[3] = {boxBounds.xmin, ydir + resolution/2, zdir + resolution/2,};
-            double p2[3] = {boxBounds.xmax, ydir + resolution/2, zdir + resolution/2,};
-            //Find intersection points
-            vtkSmartPointer<vtkPoints> intersectPoints = vtkSmartPointer<vtkPoints>::New();
-            tree->IntersectWithLine(p1, p2, intersectPoints, NULL);
-            // this bit will draw a rough approximation of the shape
-            if (intersectPoints->GetNumberOfPoints() > 0)
-            {
-                cout << "#";
-                area++;
-            }
-            else
-            {
-                cout << " ";
-            }
+        for (int x = 0; x < dims[0]; x++)
+          {
+           float pixel = imageData->GetScalarComponentAsFloat(x,y,z,0);
+           if (pixel == 255)
+           {
+               // cout << " ";
+           }
+           else
+           {
+               // cout << "#";
+               area++;
+           }
+          // std::cout << pixel;// << " ";
+          }
+        //std::cout << std::endl;
         }
-        cout << std::endl;
-    }
-    // output how many hits, which for a resolution of 1 should equal something like 1mm^2
-    cout << "area: " << area * resolution * resolution << std::endl;
+      //std::cout << std::endl;
+      }
+
+    cout << "area: " << area << endl;
+
+    vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+    writer->SetFileName("screenshot2.png");
+    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+    writer->Write();
+
+    renderWindow->Render();
+    //renderer->ResetCamera(bounds);
+    //renderer->ResetCamera();
+    renderWindow->Render();
+    renderWindowInteractor->Start();
 
     return EXIT_SUCCESS;
 }
