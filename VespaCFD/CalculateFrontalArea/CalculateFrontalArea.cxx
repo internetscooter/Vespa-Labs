@@ -29,20 +29,22 @@ struct boundingBox {
 
 int main(int argc, char *argv[])
 {
-	// check and get the stl input file provided
+    // check and get the stl input file provided
     if ( argc != 2 )
     {
         cout << "Required parameters: Filename" << endl;
         return EXIT_FAILURE;
     }
     std::string inputfile = argv[1];
+    // image magnification
+    double magnification = 4;
 
     // Read STL
     std::cout << "Reading: " << inputfile << std::endl;
     vtkSmartPointer<vtkSTLReader> stlReader = vtkSmartPointer<vtkSTLReader>::New();
     stlReader->SetFileName(inputfile.c_str());
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New(); 
-	polydata = stlReader->GetOutput();
+    vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+    polydata = stlReader->GetOutput();
     polydata->Update();
 
     // makes sense to only scan in an area the object exists, the bounding box will tell us this
@@ -58,6 +60,10 @@ int main(int argc, char *argv[])
     boxBounds.zmin = bounds[4];
     boxBounds.zmax = bounds[5];
 
+
+    double height = boxBounds.xmax - boxBounds.xmin;
+    cout << height << endl;
+
     //    Debug info if needed:
     cout  << "xmin: " << boxBounds.xmin << " "
           << "xmax: " << boxBounds.xmax << endl
@@ -66,8 +72,7 @@ int main(int argc, char *argv[])
           << "zmin: " << boxBounds.zmin << " "
           << "zmax: " << boxBounds.zmax << endl;
 
-    cout << "position x:" << centre[0] <<  " "
-         << " y:" << centre[1] << " z:" << centre[2] << endl;
+    cout << "position x:" << centre[0] <<  " " << " y:" << centre[1] << " z:" << centre[2] << endl;
 
     // Visualise
     vtkSmartPointer<vtkPolyDataMapper> polydataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -75,48 +80,15 @@ int main(int argc, char *argv[])
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(polydataMapper);
 
-//    // Description:
-//    // Set/Get the scaling used for a parallel projection, i.e. the height
-//    // of the viewport in world-coordinate distances. The default is 1.
-//    // Note that the "scale" parameter works as an "inverse scale" ---
-//    // larger numbers produce smaller images.
-//    // This method has no effect in perspective projection mode.
-//    void SetParallelScale(double scale);
-//    vtkGetMacro(ParallelScale,double);
-
-//    How camera is configured from:
-//    D:\vtk-5.8.0\Rendering\vtkCamera.cxx
-//    if ( this->ParallelProjection)
-//      {
-//      // set up a rectangular parallelipiped
-
-//      double width = this->ParallelScale * aspect;
-//      double height = this->ParallelScale;
-
-//      double xmin = ( this->WindowCenter[0] - 1.0 ) * width;
-//      double xmax = ( this->WindowCenter[0] + 1.0 ) * width;
-//      double ymin = ( this->WindowCenter[1] - 1.0 ) * height;
-//      double ymax = ( this->WindowCenter[1] + 1.0 ) * height;
-
-//      this->ProjectionTransform->Ortho( xmin, xmax, ymin, ymax,
-//                                        this->ClippingRange[0],
-//                                        this->ClippingRange[1] );
-//      }
-
-
     // Camera
     vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
     camera->SetFocalPoint(centre);
-    camera->SetPosition(centre[0],centre[1]+1000.33432,centre[2]);
+    camera->SetPosition(centre[0]+1000,centre[1],centre[2]);
     camera->SetParallelProjection(1);
-    camera->SetParallelScale(0.05);
-    //camera->SetThickness(0.2);
+    camera->SetParallelScale(height/2);
     camera->SetClippingRange(camera->GetDistance()+boxBounds.zmax, 0.2);
     camera->SetViewUp(0,0,1);
-    //camera->SetParallelScale(0.5*boxBounds.ymax-boxBounds.ymin);
-    //camera->SetDistance(1000);
-    // need to calculate centre of thing and how far back we need to get
-    camera->Print(cout);
+
     // Render
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     renderer->AddActor(actor);
@@ -125,7 +97,7 @@ int main(int argc, char *argv[])
     renderer->SetActiveCamera(camera);
 
     //renderer->ResetCamera(bounds);
-    //camera->Print(cout);
+    camera->Print(cout);
 
     // Render Window
     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
@@ -138,7 +110,7 @@ int main(int argc, char *argv[])
     // Screenshot
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput(renderWindow);
-    windowToImageFilter->SetMagnification(10); //set the resolution of the output image (3 times the current resolution of vtk render window)
+    windowToImageFilter->SetMagnification(magnification); //set the resolution of the output image (3 times the current resolution of vtk render window)
     windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
     windowToImageFilter->Update();
 
@@ -147,12 +119,9 @@ int main(int argc, char *argv[])
     imageData = windowToImageFilter->GetOutput();
     int* dims = imageData->GetDimensions();
 
-//    std::cout << "Dims: " << " x: " << dims[0] << " y: " << dims[1] << " z: " << dims[2] << std::endl;
-//    std::cout << "Number of points: " << imageData->GetNumberOfPoints() << std::endl;
-//    std::cout << "Number of cells: " << imageData->GetNumberOfCells() << std::endl;
-//    imageData->Print(cout);
-
     cout << imageData->GetScalarTypeAsString();
+    imageData->Print(cout);
+    //double height = imageData->get
 
     double area = 0;
 
@@ -180,7 +149,13 @@ int main(int argc, char *argv[])
       //std::cout << std::endl;
       }
 
-    cout << "area: " << area << endl;
+    double res = (camera->GetParallelScale() * 2 * camera->GetParallelScale() * 2) / (dims[0]*dims[0]);
+
+    cout << "image dims :" << dims[0] << " " << dims[1] << " " << dims[2] << endl;
+    cout << "height : " << height << endl;
+    cout << "res    : " << res /*(height*height)/(300*300)*/ << endl;
+    cout << "count  : " << area << endl;
+    cout << "area   : " << area * res /*(height*height)/(300*300)*/ << endl;
 
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
     writer->SetFileName("screenshot2.png");
