@@ -13,8 +13,10 @@
 #include <vtkImageData.h>
 #include <vtkImageMagnitude.h>
 
-// C++
+// C/C++
 #include <iostream>
+#include <sstream>
+#include <stdio.h>
 using namespace std;
 
 // just to make things nicer later and save some documentation reading ;)
@@ -27,17 +29,46 @@ struct boundingBox {
     double zmax;
 };
 
+/*
+
+  This calculates the frontal area of a mesh based on a camera position provided by the user. There is a lot
+  of code that could be improved but for my purposes it does the trick so I will leave as is.
+
+  Here's how it works:
+  1) We load an STL and work out the dimensions of the mesh to place it nicely in the scene
+  2) We place a parallel projection camera at some offset from the centre of the mesh. The offset number just needs
+     to be big so that you are looking at the parallel projection from a distance and direction you wish to
+     calculate the frontal area.
+  3) The VTK camera scale is done in real world sizes and is above+below the camera centre point. Setting a
+     size of 1 (metre) makes a window which is 2 (metres) high. Note: Units are "whatever" i.e. could be 1 mm/m/nm
+  4) We then take a screenshot at some resolution magnification, the bigger the resolution the more accurate, however
+     the slower the calculation (we just count pixels one by one - anything that is black is a hit).
+  5) Once we have the pixel count we can calculate area using the camera scale and the number of overall
+
+  e.g. On Windows
+  "CalculateFrontalArea.exe D:\scooter\vespalabs\openfoam\motorBike\constant\triSurface\motorBike.stl" 48 1000 0 0
+
+  */
+
 int main(int argc, char *argv[])
 {
-    // check and get the stl input file provided
-    if ( argc != 2 )
+    // check and get options provided
+    if ( argc != 6 )
     {
-        cout << "Required parameters: Filename" << endl;
+        cout << "Required parameters:" << endl;
+        cout << "  Filename (Full path to stl file e.g. something.stl)" << endl;
+        cout << "  Magnification (Image resolution size multipler e.g. 2)" << endl;
+        cout << "  x (x camera offset position from centre)" << endl;
+        cout << "  y (y camera offset position from centre)" << endl;
+        cout << "  z (z camera offset position from centre)" << endl;
+
         return EXIT_FAILURE;
     }
     std::string inputfile = argv[1];
-    // image magnification
-    double magnification = 4;
+    double magnification = atof (argv[2]);
+    double cameraxOffset = atof (argv[3]);
+    double camerayOffset = atof (argv[4]);
+    double camerazOffset = atof (argv[5]);
 
     // Read STL
     std::cout << "Reading: " << inputfile << std::endl;
@@ -60,9 +91,10 @@ int main(int argc, char *argv[])
     boxBounds.zmin = bounds[4];
     boxBounds.zmax = bounds[5];
 
-
+    // work out good camera height
+    // Warning!!!: We are assuming something squarish - other shapes may need code changes to suit wide aspects
     double height = boxBounds.xmax - boxBounds.xmin;
-    cout << height << endl;
+    cout << "Bounding box height: " << height << endl;
 
     //    Debug info if needed:
     cout  << "xmin: " << boxBounds.xmin << " "
@@ -72,7 +104,7 @@ int main(int argc, char *argv[])
           << "zmin: " << boxBounds.zmin << " "
           << "zmax: " << boxBounds.zmax << endl;
 
-    cout << "position x:" << centre[0] <<  " " << " y:" << centre[1] << " z:" << centre[2] << endl;
+    cout << "centre position x:" << centre[0] <<  " " << " y:" << centre[1] << " z:" << centre[2] << endl;
 
     // Visualise
     vtkSmartPointer<vtkPolyDataMapper> polydataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -83,7 +115,7 @@ int main(int argc, char *argv[])
     // Camera
     vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
     camera->SetFocalPoint(centre);
-    camera->SetPosition(centre[0]+1000,centre[1],centre[2]);
+    camera->SetPosition(centre[0] + cameraxOffset,centre[1] + camerayOffset,centre[2] + camerazOffset);
     camera->SetParallelProjection(1);
     camera->SetParallelScale(height/2);
     camera->SetClippingRange(camera->GetDistance()+boxBounds.zmax, 0.2);
@@ -96,15 +128,14 @@ int main(int argc, char *argv[])
     renderer->SetAutomaticLightCreation(0);// Turn off the lights so the object is black
     renderer->SetActiveCamera(camera);
 
-    //renderer->ResetCamera(bounds);
-    camera->Print(cout);
-
     // Render Window
     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     renderWindow->AddRenderer(renderer);
     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     renderWindowInteractor->SetRenderWindow(renderWindow);
     renderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+    // disable display - comment this out to see what VTK sees
+    renderWindow->SetOffScreenRendering(1);
     renderWindow->Render();
 
     // Screenshot
@@ -119,13 +150,9 @@ int main(int argc, char *argv[])
     imageData = windowToImageFilter->GetOutput();
     int* dims = imageData->GetDimensions();
 
-    cout << imageData->GetScalarTypeAsString();
-    imageData->Print(cout);
-    //double height = imageData->get
-
+    // start counting pixels...
     double area = 0;
-
-    // Retrieve the entries from the image data and print them to the screen
+    // Retrieve the entries from the image data and print them to the screen (if you remove cout comments)
     for (int z = 0; z < dims[2]; z++)
       {
       for (int y = 0; y < dims[1]; y++)
@@ -149,24 +176,23 @@ int main(int argc, char *argv[])
       //std::cout << std::endl;
       }
 
-    double res = (camera->GetParallelScale() * 2 * camera->GetParallelScale() * 2) / (dims[0]*dims[0]);
-
+    // work out the size of a pixel
+    long double res = (camera->GetParallelScale() * 2 * camera->GetParallelScale() * 2) / (dims[0]*dims[0]);
+    cout.precision(15);
     cout << "image dims :" << dims[0] << " " << dims[1] << " " << dims[2] << endl;
     cout << "height : " << height << endl;
-    cout << "res    : " << res /*(height*height)/(300*300)*/ << endl;
+    cout << "res    : " << res << endl;
     cout << "count  : " << area << endl;
-    cout << "area   : " << area * res /*(height*height)/(300*300)*/ << endl;
+    cout << "area   : " << area * res  << endl;
 
+    // save an image so we can check we got the right angle
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
     writer->SetFileName("screenshot2.png");
     writer->SetInputConnection(windowToImageFilter->GetOutputPort());
     writer->Write();
 
-    renderWindow->Render();
-    //renderer->ResetCamera(bounds);
-    //renderer->ResetCamera();
-    renderWindow->Render();
-    renderWindowInteractor->Start();
+//    renderWindow->Render();
+//    renderWindowInteractor->Start();
 
     return EXIT_SUCCESS;
 }
