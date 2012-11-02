@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     camera->SetFocalPoint(centre);
     camera->SetPosition(centre[0] + cameraxOffset,centre[1] + camerayOffset,centre[2] + camerazOffset);
     camera->SetParallelProjection(1);
-    camera->SetParallelScale(height/2);
+    camera->SetParallelScale(height/1.8); // make camera size close to but a bit bigger than object size
     camera->SetClippingRange(camera->GetDistance()+boxBounds.zmax, 0.2);
     camera->SetViewUp(0,0,1);
 
