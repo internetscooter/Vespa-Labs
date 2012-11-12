@@ -1,5 +1,13 @@
 Some helper utils for doing stuff with CFD, specifically STL mesh manipulation.
 
+
+AssembleVespa - Takes a bunch of bits in STL file format, joins them together and outputs a single STL file.
+
+CalculateFrontalArea - Takes an STL file and calculates the frontal area from a specified direction.
+
+TranslateSTL - Takes an STL and shift its position.
+
+ 
 This uses VTK to do a bunch of stuff. Note that there is a bug in VTK 5.10 with STL handlers. This
 is known to work with VTK 5.8.0.
 
