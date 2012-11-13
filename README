@@ -1,7 +1,7 @@
 Welcome to the Vespa Labs repository. 
         www.vespalabs.org
 
-This will contain a number of source code projects
+This contains a number of source code projects
 in High Performance Scooting and Computing...
 
 Licensing
@@ -13,6 +13,7 @@ EULA
 This is experimental software and has absolutely NO WARRANTY. 
 
 -= Contents =-
+
 SCII
 
 Scooter Computer II - a tablet pc hooked up to a Vespa via a LabJack.
