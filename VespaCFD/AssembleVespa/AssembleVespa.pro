@@ -17,7 +17,7 @@ TEMPLATE = app
 # You will need to change this to suit how you have VTK installed on your system
 # VTK_INCLUDE_DIR + VTK_LIB_DIR is a system variable setting on my Centos and VTK_DIR on my Windows
 
-win:INCLUDEPATH += $(VTK_DIR)\\Common \
+win32:INCLUDEPATH += $(VTK_DIR)\\Common \
                $(VTK_DIR)\\IO \
                $(VTK_DIR)\\Filtering \
                $(VTK_DIR)\\Rendering \
