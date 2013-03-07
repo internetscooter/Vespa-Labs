@@ -1,0 +1,26 @@
+#!/bin/bash
+# RUNDIR is where the case is run
+RUNDIR=~/workarea/vespaFoamRuns/$1
+echo mkdir $RUNDIR
+mkdir $RUNDIR
+echo "Copy vanila case to $RUNDIR"
+cp -r ./common/motorBike/* $RUNDIR/
+touch $RUNDIR/$1.foam
+echo "Update vanila case with new values..."
+echo 
+echo "- Changing blockMeshDict to make the grid larger and resolution finer"
+cp -f ./common/motorBike_changes/constant/polyMesh/blockMeshDict $RUNDIR/constant/polyMesh/blockMeshDict
+echo "- Changing forceCoeffs to increase speed and change reference area"
+cp -f ./common/motorBike_changes/system/forceCoeffs $RUNDIR/system/forceCoeffs
+echo "- Changing snappyHexMeshDict to get resolution finder around STL mesh"
+cp -f ./common/motorBike_changes/system/snappyHexMeshDict $RUNDIR/system/snappyHexMeshDict
+echo "- Changing initialConditions to increase speed"
+cp -f ./common/motorBike_changes/0.org/include/initialConditions $RUNDIR/0.org/include/initialConditions
+
+# cp -f ./common/motorBike_changes/Allclean ./$1/
+# cp -f ./common/motorBike_changes/Allrun ./$1/
+echo
+echo "Copying pbs script to job run location and running qsub from that dir"
+cp -f ./common/run_openfoam $RUNDIR/
+cd $RUNDIR
+qsub -N $1$2 run_openfoam
