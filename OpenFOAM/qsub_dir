@@ -1,6 +1,7 @@
 #!/bin/bash
 # RUNDIR is where the case is run
 RUNDIR=~/workarea/vespaFoamRuns/$1
+MODEL=~/workarea/motorBike.stl
 echo mkdir $RUNDIR
 mkdir $RUNDIR
 echo "Copy vanila case to $RUNDIR"
@@ -16,11 +17,16 @@ echo "- Changing snappyHexMeshDict to get resolution finder around STL mesh"
 cp -f ./common/motorBike_changes/system/snappyHexMeshDict $RUNDIR/system/snappyHexMeshDict
 echo "- Changing initialConditions to increase speed"
 cp -f ./common/motorBike_changes/0.org/include/initialConditions $RUNDIR/0.org/include/initialConditions
-
-# cp -f ./common/motorBike_changes/Allclean ./$1/
-# cp -f ./common/motorBike_changes/Allrun ./$1/
+echo "- Changing the run and clean scripts"
+cp -f ./common/motorBike_changes/Allclean $RUNDIR/
+cp -f ./common/motorBike_changes/Allrun $RUNDIR/
+echo "- Copying across the model"
+echo "cp -f $MODEL $RUNDIR/constant/triSurface/"
+cp -f $MODEL $RUNDIR/constant/triSurface/
 echo
-echo "Copying pbs script to job run location and running qsub from that dir"
+echo "- Copying pbs script to job run location and running qsub from that dir"
 cp -f ./common/run_openfoam $RUNDIR/
+echo "- Create ParaView entry file for visualisation"
+touch $RUNDIR/$1.foam
 cd $RUNDIR
 qsub -N $1$2 run_openfoam

@@ -4,7 +4,7 @@
 
 # copy motorbike surface from resources folder
 # cp $FOAM_TUTORIALS/resources/geometry/motorBike.obj.gz constant/triSurface/
-cp ../scooter_bits/motorBike.stl constant/triSurface/
+# copy done at start of run when copying across the case directory
 
 cp -r 0.org 0 > /dev/null 2>&1
 

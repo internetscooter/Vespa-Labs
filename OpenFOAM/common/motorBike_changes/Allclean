@@ -4,7 +4,7 @@
 . $WM_PROJECT_DIR/bin/tools/CleanFunctions
 
 # remove surface
-\rm -f constant/triSurface/motorBike.stl
+# rm -f constant/triSurface/motorBike.stl
 
 rm -rf 0 > /dev/null 2>&1
 
