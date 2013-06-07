@@ -13,7 +13,7 @@ echo "- Changing blockMeshDict to make the grid larger and resolution finer"
 cp -f ./common/motorBike_changes/constant/polyMesh/blockMeshDict $RUNDIR/constant/polyMesh/blockMeshDict
 echo "- Changing forceCoeffs to increase speed and change reference area"
 cp -f ./common/motorBike_changes/system/forceCoeffs $RUNDIR/system/forceCoeffs
-echo "- Changing snappyHexMeshDict to get resolution finder around STL mesh"
+echo "- Changing snappyHexMeshDict to get resolution finer around STL mesh"
 cp -f ./common/motorBike_changes/system/snappyHexMeshDict $RUNDIR/system/snappyHexMeshDict
 echo "- Changing initialConditions to increase speed"
 cp -f ./common/motorBike_changes/0.org/include/initialConditions $RUNDIR/0.org/include/initialConditions
