@@ -28,7 +28,8 @@ addLayers       true;
 // - to 'snap' the mesh boundary to the surface
 geometry
 {
-    motorBike.obj
+    # paulmc - change from motorBike.obj to stl so we can just deal with stl files
+    motorBike.stl
     {
         type triSurfaceMesh;
         name motorBike;
