@@ -76,7 +76,8 @@ int main(int argc, char *argv[])
     stlReader->SetFileName(inputfile.c_str());
     vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
     polydata = stlReader->GetOutput();
-    polydata->Update();
+    stlReader->Update(); // VTK 6
+    // polydata->Update(); // VTK 5
 
     // makes sense to only scan in an area the object exists, the bounding box will tell us this
     double centre[3];
@@ -108,7 +109,8 @@ int main(int argc, char *argv[])
 
     // Visualise
     vtkSmartPointer<vtkPolyDataMapper> polydataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    polydataMapper->SetInput(polydata);
+    polydataMapper->SetInputData(polydata); // VTK 6
+    // polydataMapper->SetInput(polydata); // VTK 5
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(polydataMapper);
 
