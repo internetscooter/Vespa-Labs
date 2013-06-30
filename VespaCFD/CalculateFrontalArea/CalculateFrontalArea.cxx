@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
     // makes sense to only scan in an area the object exists, the bounding box will tell us this
     double centre[3];
     double bounds[6];
+    double results[3];
     boundingBox boxBounds;
     polydata->GetBounds(bounds);
     polydata->GetCenter(centre);
@@ -95,17 +96,17 @@ int main(int argc, char *argv[])
     // work out good camera height
     // Warning!!!: We are assuming something squarish - other shapes may need code changes to suit wide aspects
     double height = boxBounds.xmax - boxBounds.xmin;
-    cout << "Bounding box height: " << height << endl;
+
 
     //    Debug info if needed:
-    cout  << "xmin: " << boxBounds.xmin << " "
-          << "xmax: " << boxBounds.xmax << endl
-          << "ymin: " << boxBounds.ymin << " "
-          << "ymax: " << boxBounds.ymax << endl
-          << "zmin: " << boxBounds.zmin << " "
-          << "zmax: " << boxBounds.zmax << endl;
-
-    cout << "centre position x:" << centre[0] <<  " " << " y:" << centre[1] << " z:" << centre[2] << endl;
+//    cout << "Bounding box height: " << height << endl;
+//    cout  << "xmin: " << boxBounds.xmin << " "
+//          << "xmax: " << boxBounds.xmax << endl
+//          << "ymin: " << boxBounds.ymin << " "
+//          << "ymax: " << boxBounds.ymax << endl
+//          << "zmin: " << boxBounds.zmin << " "
+//          << "zmax: " << boxBounds.zmax << endl;
+//    cout << "centre position x:" << centre[0] <<  " " << " y:" << centre[1] << " z:" << centre[2] << endl;
 
     // Visualise
     vtkSmartPointer<vtkPolyDataMapper> polydataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -140,59 +141,68 @@ int main(int argc, char *argv[])
     renderWindow->SetOffScreenRendering(1);
     renderWindow->Render();
 
-    // Screenshot
-    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
-    windowToImageFilter->SetInput(renderWindow);
-    windowToImageFilter->SetMagnification(magnification); //set the resolution of the output image (3 times the current resolution of vtk render window)
-    windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
-    windowToImageFilter->Update();
+    // do the measurement 3 times and average it to reduce errors introduced by aliasing
+    for (int i = 0; i < 3; i++)
+    {
+        // Screenshot
+        vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+        windowToImageFilter->SetInput(renderWindow);
+        windowToImageFilter->SetMagnification(magnification + i); //set the resolution of the output image (x times the current resolution of vtk render window)
+        windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+        windowToImageFilter->Update();
 
-    // Create an image data
-    vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
-    imageData = windowToImageFilter->GetOutput();
-    int* dims = imageData->GetDimensions();
+        // Create an image data
+        vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
+        imageData = windowToImageFilter->GetOutput();
+        int* dims = imageData->GetDimensions();
 
-    // start counting pixels...
-    double area = 0;
-    // Retrieve the entries from the image data and print them to the screen (if you remove cout comments)
-    for (int z = 0; z < dims[2]; z++)
-      {
-      for (int y = 0; y < dims[1]; y++)
-        {
-        for (int x = 0; x < dims[0]; x++)
+        // start counting pixels...
+        double area = 0;
+        // Retrieve the entries from the image data and print them to the screen (if you remove cout comments)
+        for (int z = 0; z < dims[2]; z++)
           {
-           float pixel = imageData->GetScalarComponentAsFloat(x,y,z,0);
-           if (pixel == 255)
-           {
-               // cout << " ";
-           }
-           else
-           {
-               // cout << "#";
-               area++;
-           }
-          // std::cout << pixel;// << " ";
+          for (int y = 0; y < dims[1]; y++)
+            {
+            for (int x = 0; x < dims[0]; x++)
+              {
+               float pixel = imageData->GetScalarComponentAsFloat(x,y,z,0);
+               if (pixel == 255)
+               {
+                   // cout << " ";
+               }
+               else
+               {
+                   // cout << "#";
+                   area++;
+               }
+              // std::cout << pixel;// << " ";
+              }
+            //std::cout << std::endl;
+            }
+          //std::cout << std::endl;
           }
-        //std::cout << std::endl;
-        }
-      //std::cout << std::endl;
-      }
 
-    // work out the size of a pixel
-    long double res = (camera->GetParallelScale() * 2 * camera->GetParallelScale() * 2) / (dims[0]*dims[0]);
-    cout.precision(15);
-    cout << "image dims :" << dims[0] << " " << dims[1] << " " << dims[2] << endl;
-    cout << "height : " << height << endl;
-    cout << "res    : " << res << endl;
-    cout << "count  : " << area << endl;
-    cout << "area   : " << area * res  << endl;
+        // work out the size of a pixel
+        long double res = (camera->GetParallelScale() * 2 * camera->GetParallelScale() * 2) / (dims[0]*dims[0]);
+        cout.precision(15);
+//        cout << "image dims :" << dims[0] << " " << dims[1] << " " << dims[2] << endl;
+//        cout << "height : " << height << endl;
+//        cout << "res    : " << res << endl;
+//        cout << "count  : " << area << endl;
+//        cout << "area   : " << area * res  << endl;
+        results[i] = area * res;
 
-    // save an image so we can check we got the right angle
-    vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
-    writer->SetFileName("screenshot2.png");
-    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
-    writer->Write();
-
+        // save an image so we can check we got the right angle
+        stringstream sstm;
+        sstm << "screenshot" << i << ".png";
+        string screenshot = sstm.str();
+        vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+        writer->SetFileName(screenshot.c_str());
+        writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+        writer->Write();
+    }
+    double area = (results[0] + results[1] + results[3]);
+    cout << "area   : " << area << endl;
 //    renderWindow->Render();
 //    renderWindowInteractor->Start();
 
