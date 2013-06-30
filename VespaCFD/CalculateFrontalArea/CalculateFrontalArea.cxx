@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
         writer->SetInputConnection(windowToImageFilter->GetOutputPort());
         writer->Write();
     }
-    double area = (results[0] + results[1] + results[3]);
+    double area = (results[0] + results[1] + results[2])/3;
     cout << "area   : " << area << endl;
 //    renderWindow->Render();
 //    renderWindowInteractor->Start();
