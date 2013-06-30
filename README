@@ -23,3 +23,7 @@ VespaCFD
 
 Some helper utils for doing stuff with CFD (Computational Fluid Dynamics), specifically STL mesh manipulation.
 http://www.vespalabs.org/Projects/Vespa_CFD%2F%2F3D_Model
+
+OpenFOAM
+
+OpenFOAM case for doing CFD analysis of Vespa's (based on the MotorBike case provided with OpenFOAM). This is a framework for generating scooter modeles and running the through simulations.
