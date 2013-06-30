@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
         stlReader->Update();
 
         // Add this mesh to everything else
-        appendFilter->AddInput(stlReader->GetOutput());
+        appendFilter->AddInputData(stlReader->GetOutput());
         appendFilter->Update();
     }
 
