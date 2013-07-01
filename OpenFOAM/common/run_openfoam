@@ -1,10 +1,14 @@
 #!/bin/bash
 #PBS -N OpenFOAM_Test
-#PBS -l nodes=1,mem=32000MB
+#PBS -l nodes=1:ppn=2:gpus=2,mem=32000MB
 #PBS -l walltime=24:00:00
-# PBS -M paulmc@vpac.org 
 #PBS -m abe
 cd $PBS_O_WORKDIR
+echo Calculate Frontal Area and update case...
+module load vtk/6.0.0
+xinit `which CalculateFrontalArea` ./constant/triSurface/motorBike.stl 20 1000 0 0 | grep "area   :" | awk '{ print $3}' > AREA
+sed -i "s/Aref        0.75/Aref        `cat AREA`/g" system/forceCoeffs
+echo Run OpenFOAM... 
 module purge
 module load openfoam/2.1.1
 . $foamDotFile
