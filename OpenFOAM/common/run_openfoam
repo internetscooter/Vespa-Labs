@@ -5,6 +5,8 @@
 #PBS -m abe
 cd $PBS_O_WORKDIR
 echo Calculate Frontal Area and update case...
+# assumes that CalculateFrontalArea is compiled and in the path
+# assumes OpenFOAM case has the 0.75 Aref (this could change in future)
 module load vtk/6.0.0
 xinit `which CalculateFrontalArea` ./constant/triSurface/motorBike.stl 20 1000 0 0 | grep "area   :" | awk '{ print $3}' > AREA
 sed -i "s/Aref        0.75/Aref        `cat AREA`/g" system/forceCoeffs
