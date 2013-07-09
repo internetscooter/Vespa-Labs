@@ -1,0 +1,64 @@
+#!/bin/bash
+# This used qsub to create an OpenFOAM case
+# We make use of the qsub -v options to create a case with a name
+# e.g. qsub -v name=salt2014 pbs_createcase
+#PBS -N Create_$name
+#PBS -l nodes=1:ppn=2:gpus=2,mem=4000MB
+#PBS -l walltime=00:20:00
+#PBS -m abe
+cd $PBS_O_WORKDIR
+# RUNDIR is where the case is run
+RUNDIR=~/workarea/vespaFoamRuns/$name
+VESPALABSSRC=~/workarea/Vespa-Labs/OpenFOAM
+# MODEL is the fully assembled Vespa model
+MODEL=~/workarea/motorBike.stl
+# TODO: We may provide the option to pass the module as a -v parameter (work in progress)
+# if a motorBike.stl is passed on the command line we will use that
+# if [ $# -ge 2 ] ; then
+#  MODEL=$2
+# fi
+
+# Making copy of MotorBike Tutorial in the run location
+echo mkdir $RUNDIR
+# TODO: Should really fail here if the directory exists (or add a timestamp)
+mkdir $RUNDIR
+echo "Copy vanila case to $RUNDIR"
+cp -r $VESPALABSSRC/common/motorBike/* $RUNDIR/
+
+echo "Update vanila case with new values..."
+echo 
+echo "- Changing blockMeshDict to make the grid larger and resolution finer"
+cp -f $VESPALABSSRC/common/motorBike_changes/constant/polyMesh/blockMeshDict $RUNDIR/constant/polyMesh/blockMeshDict
+echo "- Changing forceCoeffs to increase speed and change reference area"
+cp -f $VESPALABSSRC/common/motorBike_changes/system/forceCoeffs $RUNDIR/system/forceCoeffs
+echo "- Changing snappyHexMeshDict to get resolution finer around STL mesh"
+cp -f $VESPALABSSRC/common/motorBike_changes/system/snappyHexMeshDict $RUNDIR/system/snappyHexMeshDict
+echo "- Changing initialConditions to increase speed"
+cp -f $VESPALABSSRC/common/motorBike_changes/0.org/include/initialConditions $RUNDIR/0.org/include/initialConditions
+echo "- Changing the run and clean scripts"
+cp -f $VESPALABSSRC/common/motorBike_changes/Allclean $RUNDIR/
+cp -f $VESPALABSSRC/common/motorBike_changes/Allrun $RUNDIR/
+echo "- Copying across the model"
+echo "cp -f $MODEL $RUNDIR/constant/triSurface/"
+cp -f $MODEL $RUNDIR/constant/triSurface/
+echo
+echo "- Copying pbs script to job run location and running qsub from that dir"
+cp -f $VESPALABSSRC/common/run_openfoam $RUNDIR/
+echo "- Create ParaView entry file for visualisation"
+touch $RUNDIR/$name.foam
+cd $RUNDIR
+
+echo Calculate Frontal Area and update case...
+# assumes that CalculateFrontalArea is compiled and in the path
+# assumes OpenFOAM case has the 0.75 Aref (this could change in future)
+module load vtk/6.0.0
+# If we need to start an XServer use this...
+# xinit `which CalculateFrontalArea` $MODEL 20 1000 0 0 | grep "area   :" | awk '{ print $3}' > $RUNDIR/AREA
+# If XServer is running use this...
+env DISPLAY=:0 CalculateFrontalArea  $MODEL 20 1000 0 0 | grep "area   :" | awk '{ print $3}' > $RUNDIR/AREA
+# comment out old value
+sed -i "s/Aref/\/\/ original Aref/g" system/forceCoeffs
+# Append new value after above
+sed -i "/original Aref/ a\    Aref        `cat AREA`; \/\/ CalculateFrontalArea value" system/forceCoeffs
+
+# qsub -N $1$2 run_openfoam
