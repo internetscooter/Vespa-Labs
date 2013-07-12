@@ -6,17 +6,28 @@
 #PBS -l nodes=1:ppn=2:gpus=2,mem=96000MB
 #PBS -l walltime=02:00:00
 #PBS -m abe
+if [[ -z "$name" ]] 
+then
+  echo "Need to specify name! "
+  echo " Use the v option e.g. -v name=salt2014 vespa=~/Vespa.stl"
+  # exit 1
+fi
+
 cd $PBS_O_WORKDIR
 # RUNDIR is where the case is run
 RUNDIR=~/workarea/vespaFoamRuns/$name
 VESPALABSSRC=~/workarea/Vespa-Labs/OpenFOAM
 # MODEL is the fully assembled Vespa model
+# We can pass our own model on he command line with the option -v vespa=
 MODEL=~/workarea/motorBike.stl
-# TODO: We may provide the option to pass the module as a -v parameter (work in progress)
-# if a motorBike.stl is passed on the command line we will use that
-# if [ $# -ge 2 ] ; then
-#  MODEL=$2
-# fi
+if [[ -z "$vespa" ]]
+then
+  echo "Using a default model"
+else
+  echo "Using a new Vespa model so we will check the mesh"
+  echo $vespa
+  mkdir $RUNDIR/vespaLab   
+fi
 
 # Making copy of MotorBike Tutorial in the run location
 echo mkdir $RUNDIR
