@@ -1,7 +1,17 @@
 #!/bin/bash
+# we now pbs_createcase to create the case and launch run_openfoam at the end
+# this is just left here for reference
+echo ************************** Obsolete do not use!!! *******************
+exit 1
+
 # RUNDIR is where the case is run
 RUNDIR=~/workarea/vespaFoamRuns/$1
 MODEL=~/workarea/motorBike.stl
+# if a motorBike.stl is passed on the command line we will use that
+if [ $# -ge 2 ] ; then
+ MODEL=$2
+fi
+
 echo mkdir $RUNDIR
 mkdir $RUNDIR
 echo "Copy vanila case to $RUNDIR"

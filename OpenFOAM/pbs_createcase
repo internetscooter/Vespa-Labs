@@ -3,8 +3,8 @@
 # We make use of the qsub -v options to create a case with a name
 # e.g. qsub -v name=salt2014 pbs_createcase
 #PBS -N Create_$name
-#PBS -l nodes=1:ppn=2:gpus=2,mem=4000MB
-#PBS -l walltime=00:20:00
+#PBS -l nodes=1:ppn=2:gpus=2,mem=96000MB
+#PBS -l walltime=02:00:00
 #PBS -m abe
 cd $PBS_O_WORKDIR
 # RUNDIR is where the case is run
@@ -60,5 +60,18 @@ env DISPLAY=:0 CalculateFrontalArea  $MODEL 20 1000 0 0 | grep "area   :" | awk 
 sed -i "s/Aref/\/\/ original Aref/g" system/forceCoeffs
 # Append new value after above
 sed -i "/original Aref/ a\    Aref        `cat AREA`; \/\/ CalculateFrontalArea value" system/forceCoeffs
+
+# Since OpenFOAM chews through a lot of memory doing meshing we'll do the mesh here also
+module purge
+module load openfoam/2.1.1
+. $foamDotFile
+./Allclean
+# Below are some steps from the original Allrun script
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+cp -r 0.org 0 > /dev/null 2>&1
+runApplication blockMesh
+runApplication snappyHexMesh -overwrite
+runApplication potentialFoam -noFunctionObjects -writep
 
 # qsub -N $1$2 run_openfoam

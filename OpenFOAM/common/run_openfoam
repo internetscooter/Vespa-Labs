@@ -3,19 +3,19 @@
 #PBS -l nodes=1:ppn=2:gpus=2,mem=32000MB
 #PBS -l walltime=24:00:00
 #PBS -m abe
+
+# some OpenFOAM prep work has been done by pbs_createcase
 cd $PBS_O_WORKDIR
-echo Calculate Frontal Area and update case...
-# assumes that CalculateFrontalArea is compiled and in the path
-# assumes OpenFOAM case has the 0.75 Aref (this could change in future)
-module load vtk/6.0.0
-xinit `which CalculateFrontalArea` ./constant/triSurface/motorBike.stl 20 1000 0 0 | grep "area   :" | awk '{ print $3}' > AREA
-sed -i "s/Aref        0.75/Aref        `cat AREA`/g" system/forceCoeffs
 echo Run OpenFOAM... 
 module purge
 module load openfoam/2.1.1
 . $foamDotFile
-./Allclean
-time ./Allrun
+# ./Allclean
+# time ./Allrun
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+runApplication `getApplication`
+
 echo $PBS_JOBNAME
 echo -------------- Reference Area and Speed --------------
 grep paulmc system/forceCoeffs
