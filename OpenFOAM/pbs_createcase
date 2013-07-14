@@ -1,21 +1,32 @@
 #!/bin/bash
 # This used qsub to create an OpenFOAM case
-# We make use of the qsub -v options to create a case with a name
-# e.g. qsub -v name=salt2014 pbs_createcase
+# We make use of the qsub -v options to create a case with a name and reference a model
+#  Note: full path is required for model (~/ doesn't work for some reason)
+# e.g. qsub -v name=salt2014 -v vespa=/home/paulmc/workarea/vespaCutDown.stl pbs_createcase
 #PBS -N Create_$name
 #PBS -l nodes=1:ppn=2:gpus=2,mem=96000MB
 #PBS -l walltime=02:00:00
 #PBS -m abe
+# Set up the environment for OpenFOAM and VespaCFD utils
+module purge
+module load openfoam/2.1.1
+module load vtk/6.0.0
+. $foamDotFile
+
 if [[ -z "$name" ]] 
 then
   echo "Need to specify name! "
   echo " Use the v option e.g. -v name=salt2014 vespa=~/Vespa.stl"
-  # exit 1
+  exit 1
 fi
 
 cd $PBS_O_WORKDIR
 # RUNDIR is where the case is run
 RUNDIR=~/workarea/vespaFoamRuns/$name
+echo mkdir $RUNDIR
+# TODO: Should really fail here if the directory exists (or add a timestamp)
+mkdir $RUNDIR
+
 VESPALABSSRC=~/workarea/Vespa-Labs/OpenFOAM
 # MODEL is the fully assembled Vespa model
 # We can pass our own model on he command line with the option -v vespa=
@@ -26,13 +37,16 @@ then
 else
   echo "Using a new Vespa model so we will check the mesh"
   echo $vespa
+  echo "mkdir $RUNDIR/vespaLab"
   mkdir $RUNDIR/vespaLab   
+  echo surfaceConvert -clean $vespa $RUNDIR/vespaLab/motorBike.stl
+  surfaceConvert -clean $vespa $RUNDIR/vespaLab/motorBike.stl | grep illegal
+  echo surfaceCheck  $RUNDIR/vespaLab/motorBike.stl  | grep illegal
+  surfaceCheck  $RUNDIR/vespaLab/motorBike.stl  | grep illegal
+  MODEL=$RUNDIR/vespaLab/motorBike.stl
 fi
 
 # Making copy of MotorBike Tutorial in the run location
-echo mkdir $RUNDIR
-# TODO: Should really fail here if the directory exists (or add a timestamp)
-mkdir $RUNDIR
 echo "Copy vanila case to $RUNDIR"
 cp -r $VESPALABSSRC/common/motorBike/* $RUNDIR/
 
@@ -61,8 +75,7 @@ cd $RUNDIR
 
 echo Calculate Frontal Area and update case...
 # assumes that CalculateFrontalArea is compiled and in the path
-# assumes OpenFOAM case has the 0.75 Aref (this could change in future)
-module load vtk/6.0.0
+
 # If we need to start an XServer use this...
 # xinit `which CalculateFrontalArea` $MODEL 20 1000 0 0 | grep "area   :" | awk '{ print $3}' > $RUNDIR/AREA
 # If XServer is running use this...
@@ -73,9 +86,6 @@ sed -i "s/Aref/\/\/ original Aref/g" system/forceCoeffs
 sed -i "/original Aref/ a\    Aref        `cat AREA`; \/\/ CalculateFrontalArea value" system/forceCoeffs
 
 # Since OpenFOAM chews through a lot of memory doing meshing we'll do the mesh here also
-module purge
-module load openfoam/2.1.1
-. $foamDotFile
 ./Allclean
 # Below are some steps from the original Allrun script
 # Source tutorial run functions
