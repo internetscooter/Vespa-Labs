@@ -94,5 +94,6 @@ cp -r 0.org 0 > /dev/null 2>&1
 runApplication blockMesh
 runApplication snappyHexMesh -overwrite
 runApplication potentialFoam -noFunctionObjects -writep
-
-# qsub -N $1$2 run_openfoam
+module purge
+module load massive
+qsub -N $name run_openfoam
