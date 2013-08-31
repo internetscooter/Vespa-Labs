@@ -36,7 +36,7 @@ struct boundingBox {
   2) We place sphere around the mesh with a particular resolution
   3) We use a smooth filter to "wrap" the mesh with the sphere
   e.g. On Windows
-  "WrapMesh.exe D:\scooter\vespalabs\openfoam\motorBike\constant\triSurface\motorBike.stl" 5000
+  "WrapMesh.exe D:\scooter\vespalabs\openfoam\motorBike\constant\triSurface\motorBike.stl" 500
 
   */
 
@@ -100,12 +100,6 @@ int main(int argc, char *argv[])
   smoothFilter->Update();
  
   // spit out the result as an stl
-  vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
-  writer->SetFileName("output.vtp");
-  writer->SetInputConnection(smoothFilter->GetOutputPort());
-  writer->Write();
- 
-  // write STL
   vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
   stlWriter->SetFileName("shrinkwrapped.stl");
   stlWriter->SetInputConnection(smoothFilter->GetOutputPort());
