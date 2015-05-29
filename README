@@ -17,12 +17,12 @@ This is experimental software and has absolutely NO WARRANTY.
 SCII
 
 Scooter Computer II - a tablet pc hooked up to a Vespa via a LabJack.
-http://www.vespalabs.org/Projects/Scooter_Computer_II
+http://www.vespalabs.org/projects/scooter-computer-ii
 
 VespaCFD
 
 Some helper utils for doing stuff with CFD (Computational Fluid Dynamics), specifically STL mesh manipulation.
-http://www.vespalabs.org/Projects/Vespa_CFD%2F%2F3D_Model
+http://www.vespalabs.org/projects/vespa-cfd-3d-model
 
 OpenFOAM
 
