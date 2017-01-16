@@ -13,6 +13,8 @@ EULA
 
 This is experimental software and has absolutely NO WARRANTY. 
 
+Note: This is very old now and everything needs updating
+
 -= Contents =-
 
 SCII
